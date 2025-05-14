@@ -1,2 +1,2 @@
 # ToneUp_server
-ci/cd test
+ci/cd test!
