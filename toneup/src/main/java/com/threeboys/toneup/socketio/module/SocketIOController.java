@@ -28,11 +28,11 @@ public class SocketIOController {
         // 소켓 이벤트 리스너 등록
         server.addConnectListener(listenConnected());
         server.addDisconnectListener(listenDisconnected());
-        server.addEventListener("chat", String.class, (client, data, ackSender) -> {
-            log.info("메시지 수신: {}", data);
-            client.sendEvent("chat", "서버로부터 응답: " + data);
-            server.getBroadcastOperations().sendEvent("chat", data);
-        });
+//        server.addEventListener("chat", String.class, (client, data, ackSender) -> {
+//            log.info("메시지 수신: {}", data);
+//            client.sendEvent("chat", "서버로부터 응답: " + data);
+//            server.getBroadcastOperations().sendEvent("chat", data);
+//        });
     }
 
     /**
