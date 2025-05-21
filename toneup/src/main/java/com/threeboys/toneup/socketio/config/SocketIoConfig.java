@@ -1,4 +1,4 @@
-package com.threeboys.toneup.config;
+package com.threeboys.toneup.socketio.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

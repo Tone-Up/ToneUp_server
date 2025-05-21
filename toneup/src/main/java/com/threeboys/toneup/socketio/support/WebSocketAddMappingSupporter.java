@@ -1,7 +1,9 @@
-package com.threeboys.toneup.socketio;
+package com.threeboys.toneup.socketio.support;
 
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIOServer;
+import com.threeboys.toneup.socketio.annotation.SocketController;
+import com.threeboys.toneup.socketio.annotation.SocketMapping;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -10,7 +12,6 @@ import org.springframework.stereotype.Component;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
