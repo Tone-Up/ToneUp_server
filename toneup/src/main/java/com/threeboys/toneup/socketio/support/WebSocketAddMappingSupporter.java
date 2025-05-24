@@ -36,8 +36,6 @@ public class WebSocketAddMappingSupporter {
 
         for (Class<?> cls : classes) {
             List<Method> methods = findSocketMappingAnnotatedMethods(cls);
-            System.out.println( methods.toString() +"test e들어오나/////////////////////////////////////////");
-
             addSocketServerEventListener(cls, methods);
         }
 

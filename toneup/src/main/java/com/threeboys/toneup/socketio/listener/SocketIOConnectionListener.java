@@ -1,4 +1,4 @@
-package com.threeboys.toneup.socketio.lifecycle;
+package com.threeboys.toneup.socketio.listener;
 
 import com.corundumstudio.socketio.SocketIOServer;
 import com.corundumstudio.socketio.listener.ConnectListener;

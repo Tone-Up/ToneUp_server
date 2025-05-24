@@ -1,4 +1,4 @@
-package com.threeboys.toneup.socketio.listener;
+package com.threeboys.toneup.socketio.lifecycle;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

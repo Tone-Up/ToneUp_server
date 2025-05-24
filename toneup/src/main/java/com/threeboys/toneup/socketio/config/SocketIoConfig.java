@@ -24,6 +24,8 @@ public class SocketIoConfig {
         com.corundumstudio.socketio.Configuration config = new com.corundumstudio.socketio.Configuration();
         config.setHostname(hostname);
         config.setPort(port);
+//        config.setPingTimeout();//ping 후 60(default)초 안에 클라이언트의 pong 응답이 없으면 연결 끊음
+//        config.setPingInterval();//ping 보내는 주기(25 초 default)
         return new SocketIOServer(config);
     }
 }
