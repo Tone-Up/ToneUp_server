@@ -1,7 +1,8 @@
 spring:
   application:
     name : toneup
-
+  config:
+    import: classpath:application-secret.yml
 socketio:
   server:
     hostname: "localhost"
