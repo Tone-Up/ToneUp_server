@@ -14,11 +14,13 @@ import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
 
+@Component
 public class Oauth2SuccessHandler implements AuthenticationSuccessHandler {
     private final JWTUtil jwtUtil;
 
