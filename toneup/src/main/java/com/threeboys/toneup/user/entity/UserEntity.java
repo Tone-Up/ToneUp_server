@@ -53,6 +53,10 @@ public class UserEntity {
         this.bio ="안녕하세요!";
     }
 
+    public UserEntity() {
+
+    }
+
     public User toDomain() {
         return User.fromEntity(this);
     }
