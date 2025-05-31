@@ -65,7 +65,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     return userRepository.save(newUser);
                 });
 
-        UserDTO userDTO = UserDTO.of(socialUser.getId(), name, nickname, socialUser.getPersonalColorId(), socialUser.getRole(), socialUser.getProvider().toString());
+        UserDTO userDTO = UserDTO.of(socialUser.getId(), name, nickname, socialUser.getPersonalColor().getPersonalColorType().toString(), socialUser.getRole(), socialUser.getProvider().toString());
         return new CustomOAuth2User(userDTO);
 
     }

@@ -23,15 +23,13 @@ import java.util.Collections;
 public class AuthController {
     private final GoogleLoginService googleLoginService;
 
-    public AuthController(Userservice userservice, JWTUtil jwtUtil, @Value("${oauth.google.client-id}") String clientId, GoogleLoginService googleLoginService) {
-
+    public AuthController(Userservice userservice, JWTUtil jwtUtil, @Value("${google.client-id}") String clientId, GoogleLoginService googleLoginService) {
         this.googleLoginService = googleLoginService;
     }
 
     @PostMapping("/oauth2/authorization")
     public ResponseEntity<?> loginWithGoogle(@RequestBody OAuth2LoginRequest request) {
-       OAuthLoginResponseDTO oAuthLoginResponseDTO = googleLoginService.login(request);
+        OAuthLoginResponseDTO oAuthLoginResponseDTO = googleLoginService.login(request);
         return ResponseEntity.ok(new StandardResponse<>(true, 0, "Ok", oAuthLoginResponseDTO));
     }
 }
-
