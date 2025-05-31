@@ -15,12 +15,13 @@ import com.threeboys.toneup.user.entity.UserEntity;
 import com.threeboys.toneup.user.repository.UserRepository;
 import com.threeboys.toneup.user.service.Userservice;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.Collections;
 import java.util.Optional;
-
+@Service
 public class GoogleLoginService implements SocialLoginService{
     private final Userservice userservice;
     private final JWTUtil jwtUtil;
@@ -30,9 +31,9 @@ public class GoogleLoginService implements SocialLoginService{
     private String clientId;
 
     public GoogleLoginService(UserRepository userRepository, Userservice userservice, JWTUtil jwtUtil,
-                              NetHttpTransport transport, JsonFactory jsonFactory, String clientId) {
+                              NetHttpTransport transport, JsonFactory jsonFactory) {
         this.userservice = userservice;
-        this.clientId = clientId;
+//        this.clientId = clientId;
         this.jwtUtil = jwtUtil;
         // Google ID 토큰 검증기 생성
         this.verifier = new GoogleIdTokenVerifier.Builder(transport, jsonFactory)
@@ -60,7 +61,7 @@ public class GoogleLoginService implements SocialLoginService{
             // 3. (예시) 회원 가입 또는 로그인 처리 (생략 가능)
             UserEntity socialUser = userservice.registerUser(name,nickname, email, providerType, providerId);
 
-            String accessToken = jwtUtil.createJwt(socialUser.getId(), socialUser.getNickname(), socialUser.getPersonalColorId(), socialUser.getRole(), JwtConstants.ACCESS_TOKEN_EXPIRATION);
+            String accessToken = jwtUtil.createJwt(socialUser.getId(), socialUser.getNickname(), socialUser.getPersonalColor().getPersonalColorType().toString(), socialUser.getRole(), JwtConstants.ACCESS_TOKEN_EXPIRATION);
             String refreshToken = jwtUtil.createRefreshJwt(socialUser.getId(), JwtConstants.REFRESH_TOKEN_EXPIRATION);
 
             OAuthLoginResponseDTO dto =OAuthLoginResponseDTO.builder()
