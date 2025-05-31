@@ -7,3 +7,8 @@ socketio:
   server:
     hostname: "localhost"
     port: 8081
+server:
+  servlet:
+    encoding:
+      force-response: true
+
