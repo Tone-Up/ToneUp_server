@@ -1,5 +1,6 @@
 package com.threeboys.toneup.user.entity;
 
+import com.threeboys.toneup.personalColor.domain.PersonalColor;
 import com.threeboys.toneup.security.provider.ProviderType;
 import com.threeboys.toneup.user.domain.User;
 import jakarta.persistence.*;
@@ -33,9 +34,9 @@ public class UserEntity {
 //    @JoinColumn(name = "profile_image_id")
     private String profileImageId;
 
-//        @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "personal_color_id")
-    private String personalColorId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "personal_color_id")
+    private PersonalColor personalColor;
 
     @Column(nullable = false)
     private String role;
@@ -61,4 +62,7 @@ public class UserEntity {
         return User.fromEntity(this);
     }
 
+    public void updatePersonalColor(PersonalColor personalColor) {
+        this.personalColor = personalColor;
+    }
 }
