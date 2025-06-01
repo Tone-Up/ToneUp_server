@@ -22,7 +22,7 @@ import java.security.GeneralSecurityException;
 import java.util.Collections;
 import java.util.Optional;
 @Service
-public class GoogleLoginService implements SocialLoginService{
+public class GoogleLoginService implements OAuthLoginService{
     private final Userservice userservice;
     private final JWTUtil jwtUtil;
     private final GoogleIdTokenVerifier verifier;
