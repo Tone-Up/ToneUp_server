@@ -62,7 +62,7 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests((auth) -> auth
                         .requestMatchers("/").permitAll()
-                        .requestMatchers("/api/api/**").authenticated()
+                        .requestMatchers("/api/app/**").authenticated()
                         .anyRequest().authenticated());
 //                        .anyRequest().denyAll();
 
