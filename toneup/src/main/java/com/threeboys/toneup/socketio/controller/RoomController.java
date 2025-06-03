@@ -23,15 +23,15 @@ public class RoomController {
 
     @SocketMapping(endpoint = "chat", requestCls = ChatMessage.class)
     public void chat(SocketIOClient client, ChatMessage message) {
-        String room = message.getRoom();
-        String content = message.getMessage();
+        Long roomId = message.getRoomId();
+        String content = message.getContent();
         // 상대방이 현재 이 방에 존재하면
             //unread_count 증가 없이 db 저장 후 메시지 전송
         //아닐경우(이 방에 존재하지 않을경우)
             //unread_count 증가 하고 db 저장 후 fcm 푸시 알림 전송
 
 
-        client.getNamespace().getRoomOperations(room)
+        client.getNamespace().getRoomOperations(String.valueOf(roomId))
                 .sendEvent("chat", message); // room에만 전송
     }
 //    @SocketMapping(endpoint = "quit",requestCls = )
