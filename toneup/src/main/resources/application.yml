@@ -1,0 +1,35 @@
+spring:
+  threads:
+    virtual:
+      enabled: true
+  application:
+    name : toneup
+  config:
+    import: classpath:application-secret.yml
+
+#  datasource:
+#    hikari:
+#      maximum-pool-size: 20
+#      minimum-idle: 5
+#      idle-timeout: 600000
+#      max-lifetime: 1800000
+  datasource:
+    hikari:
+      leak-detection-threshold: 5000
+
+socketio:
+  server:
+    hostname: "localhost"
+    port: 8081
+#server:
+#  tomcat:
+#    threads:
+#        max: 5
+  servlet:
+    encoding:
+      force-response: true
+logging:
+  level:
+    org:
+      apache:
+        coyote: DEBUG
