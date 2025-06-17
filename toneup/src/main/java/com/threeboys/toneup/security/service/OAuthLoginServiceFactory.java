@@ -2,13 +2,15 @@ package com.threeboys.toneup.security.service;
 
 import com.threeboys.toneup.security.provider.ProviderType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-@RequiredArgsConstructor
+@Component
 public class OAuthLoginServiceFactory {
     private final Map<ProviderType, OAuthLoginService> serviceMap;
 
