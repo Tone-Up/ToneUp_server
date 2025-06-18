@@ -5,7 +5,7 @@ spring:
   application:
     name : toneup
   config:
-#    import: "classpath:application-secret.yml"
+    import: application-secret.yml
 
 #  datasource:
 #    hikari:
