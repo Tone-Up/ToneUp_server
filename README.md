@@ -246,33 +246,6 @@ default ↓ [ 100% ] 20 VUs  1m40s
 running (1m45.8s), 00/20 VUs, 291 complete and 0 interrupted iterations
 default ✓ [ 100% ] 20 VUs  1m40s
 
-세마포어12 fastapi에서도 요청 수 15 조절
-running (1m47.0s), 03/20 VUs, 283 complete and 0 interrupted iterations
-default ↓ [ 100% ] 20 VUs  1m40s
-
-     ✓ status is 200
-
-     checks.........................: 100.00% ✓ 286      ✗ 0
-     data_received..................: 104 kB  973 B/s
-     data_sent......................: 144 MB  1.3 MB/s
-     http_req_blocked...............: avg=631.14µs min=4.51µs   med=5.77µs   max=13.09ms p(90)=9.18µs  p(95)=6ms
-     http_req_connecting............: avg=280.83µs min=0s       med=0s       max=5.92ms  p(90)=0s      p(95)=2.91ms
-     http_req_duration..............: avg=6.23s    min=3.21s    med=5.54s    max=13.33s  p(90)=9.21s   p(95)=10.9s
-       { expected_response:true }...: avg=6.23s    min=3.21s    med=5.54s    max=13.33s  p(90)=9.21s   p(95)=10.9s
-     http_req_failed................: 0.00%   ✓ 0        ✗ 286
-     http_req_receiving.............: avg=1.84ms   min=40.18µs  med=1.38ms   max=28.65ms p(90)=3.42ms  p(95)=5.94ms
-     http_req_sending...............: avg=4.85ms   min=283.61µs med=369.18µs max=63.44ms p(90)=24.93ms p(95)=32ms
-     http_req_tls_handshaking.......: avg=0s       min=0s       med=0s       max=0s      p(90)=0s      p(95)=0s
-     http_req_waiting...............: avg=6.22s    min=3.21s    med=5.53s    max=13.32s  p(90)=9.21s   p(95)=10.9s
-     http_reqs......................: 286     2.666042/s
-     iteration_duration.............: avg=7.23s    min=4.21s    med=6.54s    max=14.33s  p(90)=10.22s  p(95)=11.9s
-     iterations.....................: 286     2.666042/s
-     vus............................: 3       min=3      max=20
-     vus_max........................: 20      min=20     max=20
-
-running (1m47.3s), 00/20 VUs, 286 complete and 0 interrupted iterations
-default ✓ [ 100% ] 20 VUs  1m40s
-
 ```
 
 ### 가상 스레드 x + resttemplate
