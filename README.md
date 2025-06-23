@@ -56,18 +56,9 @@ FastAPI로 구축된 퍼스널 컬러 분석 서버와 Spring Boot 서버 간의
 - 요청 응답 시간 편차가 최대한 적게(일관되게)
 - 응답 시간을 짧게(10초 안으로)
 
-- restTemplate
-
-![image.png](attachment:10b5444d-37c9-4680-956a-b57995b3c79d:image.png)
-
-- restTemplate+ 가상 스레드
-
-![image.png](attachment:4aa6615b-e536-49a0-92cf-c8e76db3e421:image.png)
-
 - fastApi 워커 스레드 증가 4workers
     - 50%이상 대기시간 줄어듦
 
-![image.png](attachment:0475741b-384e-47da-be4a-dd975a7b3392:image.png)
 
 **해결 방향**
 
