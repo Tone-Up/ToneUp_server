@@ -28,7 +28,7 @@ public class Userservice {
 
 
     public boolean isPersonal(UserEntity user) {
-        return user.getPersonalColor().getPersonalColorType() != null;
+        return user.getPersonalColor() != null;
     }
 
     public boolean isSignedUp(UserEntity user) {
