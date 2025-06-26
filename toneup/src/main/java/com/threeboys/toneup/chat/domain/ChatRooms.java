@@ -15,7 +15,7 @@ public class ChatRooms {
     private Long LastMessageId;
     private String LastMessageContent;
 
-    public ChatRooms(Long roomId) {
-        this.id = roomId;
-    }
+//    public ChatRooms(Long roomId) {
+//        this.id = roomId;
+//    }
 }
