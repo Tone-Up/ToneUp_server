@@ -1,7 +1,6 @@
 package com.threeboys.toneup.chat.domain;
 
 import com.threeboys.toneup.socketio.DTO.ChatMessage;
-import org.hibernate.boot.model.naming.IllegalIdentifierException;
 
 import java.util.Collections;
 import java.util.HashSet;
