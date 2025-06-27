@@ -29,8 +29,8 @@ public class PersonalColorController {
 //        return ResponseEntity.ok(new StandardResponse<>(true, 0, "Ok", personalColor));
 //    }
     @PostMapping("/personalcolor")
-    public ResponseEntity<?> createPersonalColorNotFastApi(@RequestPart("image") MultipartFile imageFile, @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
-        Long userId = oAuth2User.getId();
+    public ResponseEntity<?> createPersonalColorNotFastApi(@RequestPart("image") MultipartFile imageFile) {
+        // Long userId = oAuth2User.getId();
 //        String personalColor = personalColorService.updatePersonalColor(userId, imageFile);
         String personalColor = null;
         try{
