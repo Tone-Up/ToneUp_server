@@ -9,6 +9,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+
 @Component
 @Slf4j
 public class SocketIOConnectionListener {
@@ -32,7 +34,17 @@ public class SocketIOConnectionListener {
     public ConnectListener listenConnected() {
         return client -> {
             Map<String, List<String>> params = client.getHandshakeData().getUrlParams();
-            log.info("connect:" + params.toString());
+//            log.info("connect:" + params.toString());
+            String userId = Optional.ofNullable(params.get("userId"))
+                    .flatMap(list -> list.stream().findFirst())
+                    .orElse(null);
+
+            if (userId != null) {
+                client.set("userId", userId);
+                log.info("User connected: userId={}, sessionId={}", userId, client.getSessionId());
+            } else {
+                log.warn("Missing userId on connect");
+            }
         };
     }
 

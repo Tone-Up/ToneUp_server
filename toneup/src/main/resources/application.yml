@@ -33,3 +33,5 @@ logging:
     org:
       apache:
         coyote: DEBUG
+    root: info
+

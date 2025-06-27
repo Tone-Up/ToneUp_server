@@ -1,5 +1,6 @@
-package com.threeboys.toneup.chat.domain;
+package com.threeboys.toneup.chat;
 
+import com.threeboys.toneup.chat.domain.ChatRoom;
 import com.threeboys.toneup.socketio.DTO.ChatMessage;
 import org.junit.jupiter.api.Test;
 

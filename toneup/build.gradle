@@ -35,7 +35,7 @@ dependencies {
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'com.mysql:mysql-connector-j'
 	implementation 'com.h2database:h2'
-	
+
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
@@ -60,6 +60,13 @@ dependencies {
 
 	implementation 'org.apache.httpcomponents.client5:httpclient5:5.4.3'
 	implementation 'org.apache.httpcomponents.core5:httpcore5:5.3.1'
+
+	//fcm
+	implementation 'com.google.firebase:firebase-admin:9.5.0'
+
+	//aws
+	implementation 'io.awspring.cloud:spring-cloud-aws-starter:3.3.1'
+	implementation 'com.amazonaws:aws-java-sdk-s3:1.12.767'
 }
 
 tasks.named('test') {

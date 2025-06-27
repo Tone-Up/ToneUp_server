@@ -22,10 +22,24 @@ public class PersonalColorController {
 
     private final PersonalColorService personalColorService;
 
+//    @PostMapping("/personalcolor")
+//    public ResponseEntity<?> createPersonalColor(@RequestPart("image") MultipartFile imageFile, @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
+//        Long userId = oAuth2User.getId();
+//        String personalColor = personalColorService.updatePersonalColor(userId, imageFile);
+//        return ResponseEntity.ok(new StandardResponse<>(true, 0, "Ok", personalColor));
+//    }
     @PostMapping("/personalcolor")
-    public ResponseEntity<?> createPersonalColor(@RequestPart("image") MultipartFile imageFile, @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
+    public ResponseEntity<?> createPersonalColorNotFastApi(@RequestPart("image") MultipartFile imageFile, @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
         Long userId = oAuth2User.getId();
-        String personalColor = personalColorService.updatePersonalColor(userId, imageFile);
+//        String personalColor = personalColorService.updatePersonalColor(userId, imageFile);
+        String personalColor = null;
+        try{
+            Thread.sleep(8000);
+            personalColor = "warm cool";
+        }catch (InterruptedException e){
+            log.error("InterruptedException : "+ e.getMessage());
+        }
+
         return ResponseEntity.ok(new StandardResponse<>(true, 0, "Ok", personalColor));
     }
 
