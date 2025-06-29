@@ -1,7 +1,9 @@
 package com.threeboys.toneup.security.jwt;
 
+import com.threeboys.toneup.common.repository.TokenRepository;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -16,13 +18,14 @@ import java.util.Date;
 public class JWTUtil {
 
     private SecretKey secretKey;
-
-    public JWTUtil(@Value("${spring.jwt.secret}")String secret) {
+    private final TokenRepository tokenRepository;
+    public JWTUtil(@Value("${spring.jwt.secret}")String secret, TokenRepository tokenRepository) {
 
 
         secretKey = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), Jwts.SIG.HS256.key().build().getAlgorithm());
 //        secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
 
+        this.tokenRepository = tokenRepository;
     }
 
     public String getNickname(String token) {
@@ -61,13 +64,15 @@ public class JWTUtil {
     }
 
     public String createRefreshJwt(Long userId, Long expiredMs) {
-        return Jwts.builder()
+        String refreshToken =  Jwts.builder()
                 .subject(String.valueOf(userId))
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expiredMs))
                 .signWith(secretKey)
                 .compact();
-
+        RefreshToken token = new RefreshToken(userId, refreshToken, expiredMs / 1000);
+        tokenRepository.save(token);
+        return refreshToken;
 //        return Jwts.builder()
 //                .claim("userId", userId)
 //                .issuedAt(new Date(System.currentTimeMillis()))
