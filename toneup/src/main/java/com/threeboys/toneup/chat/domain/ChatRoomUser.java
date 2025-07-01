@@ -10,6 +10,7 @@ public class ChatRoomUser {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
     private UserEntity userId;
 
     @JoinColumn(name = "chatRoom_id")
