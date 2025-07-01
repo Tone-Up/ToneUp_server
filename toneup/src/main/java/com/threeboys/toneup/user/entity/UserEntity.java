@@ -5,11 +5,13 @@ import com.threeboys.toneup.security.provider.ProviderType;
 import com.threeboys.toneup.user.domain.User;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
 @Getter
 @Setter
+@NoArgsConstructor
 public class UserEntity {
 
     @Id
@@ -54,9 +56,10 @@ public class UserEntity {
         this.bio ="안녕하세요!";
     }
 
-    public UserEntity() {
-
+    public UserEntity(long id) {
+        this.id = id;
     }
+
 
     public User toDomain() {
         return User.fromEntity(this);
