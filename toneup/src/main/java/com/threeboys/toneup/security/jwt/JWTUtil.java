@@ -34,7 +34,7 @@ public class JWTUtil {
     }
     public Long getUserId(String token) {
 
-        return Long.parseLong(Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("userId", String.class));
+        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("userId", Long.class);
     }
     public String getPersonalColor(String token) {
 
@@ -51,7 +51,6 @@ public class JWTUtil {
     }
 
     public String createJwt(Long userId, String nickname, String personalColor, String role, Long expiredMs) {
-
         return Jwts.builder()
                 .claim("userId", userId)
                 .claim("nickname", nickname)
@@ -87,7 +86,6 @@ public class JWTUtil {
                     .setSigningKey(secretKey) // 비밀키 설정 (SecretKey 객체)
                     .build()
                     .parseClaimsJws(token);
-
             // 파싱 성공 시 예외 없으므로 토큰은 유효함
             return true;
         } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {

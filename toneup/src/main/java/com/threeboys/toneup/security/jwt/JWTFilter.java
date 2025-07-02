@@ -25,13 +25,13 @@ public class JWTFilter extends OncePerRequestFilter {
 
         //Header에서 토큰 꺼내기
         String authorizationHeader = request.getHeader("Authorization");
-
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             String token = authorizationHeader.substring(7); // "Bearer " 제거
 
             try {
                 //토큰 유효성 검사, 사용자 정보 추출
                 if (jwtUtil.isValidToken(token)) {
+
                     Long userId = jwtUtil.getUserId(token);
                     String role = jwtUtil.getRole(token);
                     String nickname = jwtUtil.getNickname(token);
@@ -51,6 +51,8 @@ public class JWTFilter extends OncePerRequestFilter {
                 }
 
             } catch (Exception e) {
+                System.out.println(e.getMessage()+"error");
+
                 // 유효하지 않은 토큰일 경우 SecurityContext를 비우고 진행
                 SecurityContextHolder.clearContext();
             }
