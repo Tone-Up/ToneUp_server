@@ -4,7 +4,6 @@ import com.threeboys.toneup.feed.domain.Feed;
 import com.threeboys.toneup.feed.exception.InvalidContentLengthException;
 import com.threeboys.toneup.feed.exception.InvalidImageCountException;
 import com.threeboys.toneup.user.entity.UserEntity;
-import com.threeboys.toneup.user.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -40,6 +39,6 @@ public class FeedTest {
                 .content(content)
                 .user(new UserEntity(1L))
                 .build();
-        assertThrows(InvalidImageCountException.class, ()->feed.attchImages(imageUrls));
+        assertThrows(InvalidImageCountException.class, ()->feed.attachImages(imageUrls));
     }
 }
