@@ -12,6 +12,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
+@Table(name = "users")
 public class UserEntity {
 
     @Id

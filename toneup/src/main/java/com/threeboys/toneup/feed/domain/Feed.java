@@ -1,17 +1,21 @@
 package com.threeboys.toneup.feed.domain;
 
+import com.threeboys.toneup.common.domain.ImageType;
+import com.threeboys.toneup.common.domain.Images;
 import com.threeboys.toneup.feed.exception.InvalidContentLengthException;
 import com.threeboys.toneup.feed.exception.InvalidImageCountException;
 import com.threeboys.toneup.user.entity.UserEntity;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 //@AllArgsConstructor
 @NoArgsConstructor
 @Entity
+@Getter
 public class Feed {
     private static final int MAX_CONTENT_LENGTH = 1000;
     private static final int MAX_IMAGE_SIZE = 5;
@@ -26,8 +30,9 @@ public class Feed {
     private UserEntity userId;
 
     private String content;
+
     @Transient
-    private List<String> imageUrls;
+    private List<Images> imageUrlList = new ArrayList<>();
 
     @Builder
     public Feed(UserEntity user , String content){
@@ -36,9 +41,19 @@ public class Feed {
         this.content = content;
     }
 
-    public void attchImages(List<String> imageUrls){
+    public void attachImages(List<String> imageUrls){
         validateImageCount(imageUrls);
-        this.imageUrls = imageUrls;
+        for(int i =0; i< imageUrls.size(); i++){
+            Images images = Images.builder()
+                    .type(ImageType.FEED)
+                    .refId(id)
+                    .url(imageUrls.get(i))
+                    .order(i)
+                    .s3Key(imageUrls.get(i))
+                    .build();
+            imageUrlList.add(images);
+        }
+
     }
 
     private void validateImageCount(List<String> imageUrls){

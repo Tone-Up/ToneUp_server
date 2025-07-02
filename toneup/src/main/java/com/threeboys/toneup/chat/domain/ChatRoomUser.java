@@ -9,8 +9,8 @@ public class ChatRoomUser {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
+    @ManyToOne(fetch = FetchType.LAZY)
     private UserEntity userId;
 
     @JoinColumn(name = "chatRoom_id")
