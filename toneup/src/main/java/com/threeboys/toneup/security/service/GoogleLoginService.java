@@ -27,17 +27,14 @@ public class GoogleLoginService implements OAuthLoginService{
     private final JWTUtil jwtUtil;
     private final GoogleIdTokenVerifier verifier;
 
-    @Value("${google.client-id}")
-    private String clientId;
-
-    public GoogleLoginService(UserRepository userRepository, Userservice userservice, JWTUtil jwtUtil,
+    public GoogleLoginService(@Value("${google.client-id}") String clientId, UserRepository userRepository, Userservice userservice, JWTUtil jwtUtil,
                               NetHttpTransport transport, JsonFactory jsonFactory) {
         this.userservice = userservice;
 //        this.clientId = clientId;
         this.jwtUtil = jwtUtil;
         // Google ID 토큰 검증기 생성
         this.verifier = new GoogleIdTokenVerifier.Builder(transport, jsonFactory)
-                .setAudience(Collections.singletonList(this.clientId))
+                .setAudience(Collections.singletonList(clientId))
                 .build();
     }
 
