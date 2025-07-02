@@ -53,11 +53,11 @@ public class SecurityConfig {
                 .addFilterBefore(new JWTFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
 
         //oauth2
-        http
-                .oauth2Login((oauth2)->oauth2
-                        .userInfoEndpoint((userInfoEndpointConfig)->userInfoEndpointConfig
-                            .userService(customOAuth2UserService))
-                        .successHandler(oauth2SuccessHandler));
+//        http
+//                .oauth2Login((oauth2)->oauth2
+//                        .userInfoEndpoint((userInfoEndpointConfig)->userInfoEndpointConfig
+//                            .userService(customOAuth2UserService))
+//                        .successHandler(oauth2SuccessHandler));
 
         //경로별 인가 작업
         http
