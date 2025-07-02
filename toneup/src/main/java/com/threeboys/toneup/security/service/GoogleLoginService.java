@@ -57,8 +57,9 @@ public class GoogleLoginService implements OAuthLoginService{
 
             // 3. (예시) 회원 가입 또는 로그인 처리 (생략 가능)
             UserEntity socialUser = userservice.registerUser(name,nickname, email, providerType, providerId);
+            String personalColorType = (socialUser.getPersonalColor().getPersonalColorType()==null) ? null : socialUser.getPersonalColor().getPersonalColorType().toString();
 
-            String accessToken = jwtUtil.createJwt(socialUser.getId(), socialUser.getNickname(), socialUser.getPersonalColor().getPersonalColorType().toString(), socialUser.getRole(), JwtConstants.ACCESS_TOKEN_EXPIRATION);
+            String accessToken = jwtUtil.createJwt(socialUser.getId(), socialUser.getNickname(), personalColorType, socialUser.getRole(), JwtConstants.ACCESS_TOKEN_EXPIRATION);
             String refreshToken = jwtUtil.createRefreshJwt(socialUser.getId(), JwtConstants.REFRESH_TOKEN_EXPIRATION);
 
             OAuthLoginResponseDTO dto =OAuthLoginResponseDTO.builder()
