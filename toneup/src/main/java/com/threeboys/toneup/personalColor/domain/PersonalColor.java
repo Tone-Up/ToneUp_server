@@ -3,11 +3,12 @@ package com.threeboys.toneup.personalColor.domain;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 
 @Entity
 @Getter
-@RequiredArgsConstructor
+@NoArgsConstructor
 public class PersonalColor {
 
     @Id
@@ -18,4 +19,8 @@ public class PersonalColor {
     @Enumerated(EnumType.STRING)
     private PersonalColorType personalColorType;
 
+    @Builder
+    public PersonalColor(PersonalColorType personalColorType) {
+        this.personalColorType = personalColorType;
+    }
 }
