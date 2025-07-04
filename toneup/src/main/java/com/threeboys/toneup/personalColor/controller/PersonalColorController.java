@@ -1,6 +1,7 @@
 package com.threeboys.toneup.personalColor.controller;
 
 import com.threeboys.toneup.common.response.StandardResponse;
+import com.threeboys.toneup.personalColor.dto.PersonalColorResponse;
 import com.threeboys.toneup.personalColor.service.PersonalColorService;
 import com.threeboys.toneup.security.CustomOAuth2User;
 import lombok.RequiredArgsConstructor;
@@ -35,12 +36,13 @@ public class PersonalColorController {
         String personalColor = null;
         try{
             Thread.sleep(8000);
-            personalColor = "warm cool";
+            personalColor = "AUTUM WARM";
         }catch (InterruptedException e){
             log.error("InterruptedException : "+ e.getMessage());
         }
+        PersonalColorResponse personalColorResponse = new PersonalColorResponse(personalColor);
 
-        return ResponseEntity.ok(new StandardResponse<>(true, 0, "Ok", personalColor));
+        return ResponseEntity.ok(new StandardResponse<>(true, 200, "Ok",personalColorResponse));
     }
 
     @PostMapping("/personalcolortest")
