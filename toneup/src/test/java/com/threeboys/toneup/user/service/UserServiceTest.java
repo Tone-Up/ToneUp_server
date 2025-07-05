@@ -1,5 +1,6 @@
 package com.threeboys.toneup.user.service;
 
+import com.threeboys.toneup.common.domain.Images;
 import com.threeboys.toneup.feed.domain.Feed;
 import com.threeboys.toneup.personalColor.domain.PersonalColor;
 import com.threeboys.toneup.personalColor.domain.PersonalColorType;
@@ -38,7 +39,7 @@ public class UserServiceTest {
     @Test
     @DisplayName("프로필_조회")
     void getProfile(){
-        UserEntity userEntity = new UserEntity("김준영", "Jjun", ProviderType.GOOGLE, "test1234", "test1234@test.com");
+        UserEntity userEntity = new UserEntity("김준영", "Jjun", ProviderType.GOOGLE, "test1234", "test1234@test.com",new Images());
         userEntity.updatePersonalColor(PersonalColor.builder().personalColorType(PersonalColorType.ATUMN).build());
         Long userId = 1L;
         int followerCount = 0 ;// followRepository.countByFolloweeId(userId);
@@ -76,8 +77,9 @@ public class UserServiceTest {
     @Test
     @DisplayName("프로필 동등성 비교")
     void equalsProfile(){
-        UserEntity user1 = new UserEntity("김준영", "Jjun", ProviderType.GOOGLE, "test1234", "test1234@test.com");
-        UserEntity user2 = new UserEntity("김준영", "Jjun", ProviderType.GOOGLE, "test1234", "test1234@test.com");
+        Images image = new Images();
+        UserEntity user1 = new UserEntity("김준영", "Jjun", ProviderType.GOOGLE, "test1234", "test1234@test.com", image);
+        UserEntity user2 = new UserEntity("김준영", "Jjun", ProviderType.GOOGLE, "test1234", "test1234@test.com", image);
 
         assertEquals(user1,user2);
     }
