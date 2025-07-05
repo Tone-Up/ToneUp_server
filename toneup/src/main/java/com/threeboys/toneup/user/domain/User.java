@@ -87,7 +87,7 @@ public class User {
     }
 
     public static User fromEntity(UserEntity entity) {
-        return new User(entity.getName(),  entity.getEmail(), entity.getRole(), entity.getNickname(),entity.getPersonalColor().getPersonalColorType().toString(),entity.getBio(),entity.getProfileImageId());
+        return new User(entity.getName(),  entity.getEmail(), entity.getRole(), entity.getNickname(),entity.getPersonalColor().getPersonalColorType().toString(),entity.getBio(),entity.getProfileImageId().getUrl());
     }
 
 //    public UserEntity toEntity() {

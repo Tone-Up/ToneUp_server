@@ -1,6 +1,6 @@
 package com.threeboys.toneup.feed.service;
 
-import com.threeboys.toneup.common.domain.ImageRepository;
+import com.threeboys.toneup.common.repository.ImageRepository;
 import com.threeboys.toneup.feed.domain.Feed;
 import com.threeboys.toneup.feed.dto.FeedRequest;
 import com.threeboys.toneup.feed.dto.FeedResponse;
@@ -17,9 +17,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 

@@ -1,6 +1,6 @@
 package com.threeboys.toneup.feed.service;
 
-import com.threeboys.toneup.common.domain.ImageRepository;
+import com.threeboys.toneup.common.repository.ImageRepository;
 import com.threeboys.toneup.feed.domain.Feed;
 import com.threeboys.toneup.feed.dto.FeedRequest;
 import com.threeboys.toneup.feed.dto.FeedResponse;
