@@ -2,6 +2,7 @@ package com.threeboys.toneup.feed.domain;
 
 import com.threeboys.toneup.common.domain.ImageType;
 import com.threeboys.toneup.common.domain.Images;
+import com.threeboys.toneup.common.exception.FORBIDDENException;
 import com.threeboys.toneup.feed.exception.InvalidContentLengthException;
 import com.threeboys.toneup.feed.exception.InvalidImageCountException;
 import com.threeboys.toneup.user.entity.UserEntity;
@@ -64,6 +65,19 @@ public class Feed {
     private void validateContent(String content) {
         if(content==null|| content.isEmpty() || content.length()>MAX_CONTENT_LENGTH){
             throw new InvalidContentLengthException();
+        }
+    }
+
+    public void changeFeed(String content, List<String> imageUrls) {
+        validateContent(content);
+        validateImageCount(imageUrls);
+        this.content = content;
+        attachImages(imageUrls);
+    }
+
+    public void validateOwner(Long userId) {
+        if (!this.userId.getId().equals(userId)) {
+            throw new FORBIDDENException();
         }
     }
 }
