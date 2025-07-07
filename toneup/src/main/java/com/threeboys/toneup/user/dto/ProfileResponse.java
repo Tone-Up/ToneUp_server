@@ -26,7 +26,7 @@ public class ProfileResponse {
         this.following = following;
     }
 
-    public static ProfileResponse from(UserEntity userEntity, int follower, int following) {
+    public static ProfileResponse from(UserEntity userEntity, String profileImageUrl, int follower, int following) {
         return ProfileResponse.builder()
                 .userId(userEntity.getId())
                 .nickname(userEntity.getNickname())
@@ -34,7 +34,7 @@ public class ProfileResponse {
                 .bio(userEntity.getBio())
                 .follower(follower)
                 .following(following)
-                .profileImageUrl(userEntity.getProfileImageId().getUrl())
+                .profileImageUrl(profileImageUrl)
                 .build();
     }
 
