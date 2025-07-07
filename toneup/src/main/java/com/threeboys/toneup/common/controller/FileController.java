@@ -22,7 +22,7 @@ public class FileController {
 
     @PostMapping("/uploads/presigned-urls")
     public ResponseEntity<?> getPresignedUrl(@RequestBody FileNamesDTO fileNames){
-        List<PresignedUrlResponseDTO> files = fileService.getPreSignedUrl("images", fileNames);
+        List<PresignedUrlResponseDTO> files = fileService.generatePreSignedUrl("images", fileNames);
         return ResponseEntity.ok(new StandardResponse<>(true, 0, "ok",new PresignedUrlListResponseDTO(files)));
     }
 
