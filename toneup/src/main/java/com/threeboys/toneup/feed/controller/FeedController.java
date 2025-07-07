@@ -1,6 +1,7 @@
 package com.threeboys.toneup.feed.controller;
 
 import com.threeboys.toneup.common.response.StandardResponse;
+import com.threeboys.toneup.common.service.FileService;
 import com.threeboys.toneup.feed.dto.FeedRequest;
 import com.threeboys.toneup.feed.dto.FeedResponse;
 import com.threeboys.toneup.feed.service.FeedService;
@@ -23,10 +24,17 @@ public class FeedController {
         return ResponseEntity.ok(new StandardResponse<>(true, 0, "ok",feedResponse));
     }
 
+
     @PutMapping("/feeds/{feedId}")
     public ResponseEntity<?> updateFeed(@PathVariable Long feedId, @RequestBody FeedRequest feedRequest, @AuthenticationPrincipal CustomOAuth2User customOAuth2User){
         Long userId = customOAuth2User.getId();
         FeedResponse feedResponse = feedService.updateFeed(userId, feedId, feedRequest);
         return ResponseEntity.ok(new StandardResponse<>(true, 0, "ok",feedResponse));
+    }
+    @DeleteMapping("/feeds/{feedId}")
+    public ResponseEntity<?> deleteFeed(@PathVariable Long feedId, @AuthenticationPrincipal CustomOAuth2User customOAuth2User){
+        Long userId = customOAuth2User.getId();
+        feedService.deleteFeed(userId, feedId);
+        return ResponseEntity.ok(new StandardResponse<>(true, 0, "ok",null));
     }
 }

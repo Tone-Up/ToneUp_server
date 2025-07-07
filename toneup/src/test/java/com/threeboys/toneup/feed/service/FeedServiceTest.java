@@ -24,9 +24,9 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class FeedServiceTest {
@@ -90,5 +90,27 @@ class FeedServiceTest {
         verify(imageRepository).saveAll(feed.getImageUrlList());
 
         assertThat(response.getFeedId()).isEqualTo(100L);
+    }
+
+    @Test
+    @DisplayName("피드 삭제하기")
+    void deleteFeed(){
+        Long feedId = 100L;
+        Long userId = 1L;
+        UserEntity user = new UserEntity(userId);
+
+        Feed feed = new Feed(user,"feedContent"); // 변경 전 피드
+        when(feedRepository.findById(feedId)).thenReturn(Optional.of(feed));
+
+        feedService.deleteFeed(userId, feedId);
+
+        //then
+        verify(imageRepository, times(1)).deleteByTypeAndRefId(ImageType.FEED, feedId);
+        verify(feedRepository, times(1)).delete(any(Feed.class));
+
+
+//        doNothing().when(bookRepository).delete(any(Book.class));
+
+
     }
 }

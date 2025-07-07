@@ -2,6 +2,7 @@ package com.threeboys.toneup.common.service;
 
 import com.amazonaws.HttpMethod;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.threeboys.toneup.common.request.FileNamesDTO;
 import com.threeboys.toneup.common.response.PresignedUrlResponseDTO;
@@ -23,20 +24,31 @@ public class FileService {
 
     private final AmazonS3 amazonS3;
 
+    public void deleteS3Object(String s3Key){
+        //전역 예외 처리함 (SdkClientException, AmazonServiceException)
+        amazonS3.deleteObject(new DeleteObjectRequest(bucket, s3Key));
+    }
+
+    public String getPreSignedUrl(String s3Key){
+        GeneratePresignedUrlRequest generatePresignedUrlRequest = getGeneratePreSignedUrlRequest(bucket, s3Key, HttpMethod.GET);
+        URL url = amazonS3.generatePresignedUrl(generatePresignedUrlRequest);
+        return url.toString();
+    }
+
     /**
      * presigned url 발급
      * @param prefix 버킷 디렉토리 이름
      * @param fileNames 클라이언트가 전달한 파일명 리스트 파라미터
      * @return presigned url
      */
-    public List<PresignedUrlResponseDTO> getPreSignedUrl(String prefix, FileNamesDTO fileNames) {
+    public List<PresignedUrlResponseDTO> generatePreSignedUrl(String prefix, FileNamesDTO fileNames) {
         List<PresignedUrlResponseDTO> files = new ArrayList<>();
         for(String fileName : fileNames.getFileNames()){
             if(prefix!=null && !prefix.isBlank()) {
                 fileName = createPath(prefix, fileName);
             }
 
-            GeneratePresignedUrlRequest generatePresignedUrlRequest = getGeneratePreSignedUrlRequest(bucket, fileName);
+            GeneratePresignedUrlRequest generatePresignedUrlRequest = getGeneratePreSignedUrlRequest(bucket, fileName, HttpMethod.PUT);
             URL url = amazonS3.generatePresignedUrl(generatePresignedUrlRequest);
             PresignedUrlResponseDTO fileResponseDTO =  PresignedUrlResponseDTO.builder()
                     .fileName(fileName)
@@ -68,10 +80,10 @@ public class FileService {
      * @param fileName S3 업로드용 파일 이름
      * @return presigned url
      */
-    private GeneratePresignedUrlRequest getGeneratePreSignedUrlRequest(String bucket, String fileName) {
+    private GeneratePresignedUrlRequest getGeneratePreSignedUrlRequest(String bucket, String fileName, HttpMethod httpMethod) {
         GeneratePresignedUrlRequest generatePresignedUrlRequest =
                 new GeneratePresignedUrlRequest(bucket, fileName)
-                        .withMethod(HttpMethod.PUT)
+                        .withMethod(httpMethod)
                         .withExpiration(getPreSignedUrlExpiration());
 //        generatePresignedUrlRequest.addRequestParameter(
 //                Headers.S3_CANNED_ACL,

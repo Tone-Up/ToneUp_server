@@ -1,6 +1,7 @@
 package com.threeboys.toneup.user.service;
 
 import com.threeboys.toneup.common.domain.Images;
+import com.threeboys.toneup.common.service.FileService;
 import com.threeboys.toneup.feed.domain.Feed;
 import com.threeboys.toneup.personalColor.domain.PersonalColor;
 import com.threeboys.toneup.personalColor.domain.PersonalColorType;
@@ -36,17 +37,26 @@ public class UserServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private FileService fileService;
+
     @Test
     @DisplayName("프로필_조회")
     void getProfile(){
-        UserEntity userEntity = new UserEntity("김준영", "Jjun", ProviderType.GOOGLE, "test1234", "test1234@test.com",new Images());
+        Images images = Images.builder()
+                .s3Key("some-s3-key")
+                .build();
+        UserEntity userEntity = new UserEntity("김준영", "Jjun", ProviderType.GOOGLE, "test1234", "test1234@test.com",images);
         userEntity.updatePersonalColor(PersonalColor.builder().personalColorType(PersonalColorType.ATUMN).build());
         Long userId = 1L;
+        String profileImageUrl = "http://test";
+
         int followerCount = 0 ;// followRepository.countByFolloweeId(userId);
         int followingCount =0 ;// followRepository.countByFollowerId(userId);
 
+        when(fileService.getPreSignedUrl(images.getS3Key())).thenReturn(profileImageUrl);
         when(userRepository.findById(userId)).thenReturn(Optional.of(userEntity));
-        ProfileResponse expectProfileResponse = ProfileResponse.from(userEntity, followerCount, followingCount);
+        ProfileResponse expectProfileResponse = ProfileResponse.from(userEntity, profileImageUrl, followerCount, followingCount);
         ProfileResponse profileResponse = userservice.getProfile(userId);
 
         assertEquals(expectProfileResponse, profileResponse);
