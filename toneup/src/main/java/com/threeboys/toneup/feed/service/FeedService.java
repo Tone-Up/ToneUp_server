@@ -53,4 +53,14 @@ public class FeedService {
 
         return new FeedResponse(feedId);
     }
+
+    public void deleteFeed(Long userId, Long feedId) {
+        Feed feed = feedRepository.findById(feedId).orElseThrow(FeedNotFoundException::new);
+        feed.validateOwner(userId);
+        imageRepository.deleteByTypeAndRefId(ImageType.FEED,feedId);
+
+        //s3 삭제할 이미지 삭제하기 fileService.deleteFeedImage
+
+        feedRepository.delete(feed);
+    }
 }
