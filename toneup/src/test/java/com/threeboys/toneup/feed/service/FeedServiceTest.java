@@ -3,7 +3,9 @@ package com.threeboys.toneup.feed.service;
 import com.threeboys.toneup.common.domain.ImageType;
 import com.threeboys.toneup.common.domain.Images;
 import com.threeboys.toneup.common.repository.ImageRepository;
+import com.threeboys.toneup.common.service.FileService;
 import com.threeboys.toneup.feed.domain.Feed;
+import com.threeboys.toneup.feed.dto.FeedDetailResponse;
 import com.threeboys.toneup.feed.dto.FeedRequest;
 import com.threeboys.toneup.feed.dto.FeedResponse;
 import com.threeboys.toneup.feed.repository.FeedRepository;
@@ -19,6 +21,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -40,9 +43,11 @@ class FeedServiceTest {
     private UserRepository userRepository;
     @Mock
     private ImageRepository imageRepository;
-
+    @Mock
+    private FileService fileService;
 
     @Test
+    @DisplayName("피드 생성하기")
     void createFeed() {
         // given
         Long userId = 1L;
@@ -75,8 +80,13 @@ class FeedServiceTest {
         UserEntity user = new UserEntity(userId);
 
         Feed feed = Mockito.spy(new Feed(user,"기존 내용")); // 변경 전 피드
+        List<Images> imagesList = new ArrayList<>(List.of(
+                new Images(100L, "test", ImageType.FEED, 0,"images/test1"),
+                new Images(100L, "test1", ImageType.FEED, 1,"images/test2")));
+        when(feedRepository.findById(feedId)).thenReturn(Optional.of(feed));
+        when(imageRepository.findByTypeAndRefId(ImageType.FEED,feedId)).thenReturn(imagesList);
 
-        given(feedRepository.findById(feedId)).willReturn(Optional.of(feed));
+        when(feedRepository.findById(feedId)).thenReturn(Optional.of(feed));
 
         // when
         FeedResponse response = feedService.updateFeed(userId, feedId, request);
@@ -86,7 +96,9 @@ class FeedServiceTest {
         verify(feed).changeFeed("새로운 내용", List.of("url1", "url2"));
 
         // 이미지 삭제 및 저장 확인
-        verify(imageRepository).deleteByTypeAndRefId(ImageType.FEED, feedId);
+        verify(imageRepository).findByTypeAndRefId(ImageType.FEED, feedId);
+        verify(imageRepository, times(1)).deleteAll(imagesList);
+        verify(fileService, times(2)).deleteS3Object(anyString());
         verify(imageRepository).saveAll(feed.getImageUrlList());
 
         assertThat(response.getFeedId()).isEqualTo(100L);
@@ -99,17 +111,30 @@ class FeedServiceTest {
         Long userId = 1L;
         UserEntity user = new UserEntity(userId);
 
-        Feed feed = new Feed(user,"feedContent"); // 변경 전 피드
+        Feed feed = new Feed(user,"feedContent");
+
+        List<Images> imagesList = new ArrayList<>(List.of(
+                new Images(100L, "test", ImageType.FEED, 0,"images/test1"),
+                new Images(100L, "test1", ImageType.FEED, 1,"images/test2")));
         when(feedRepository.findById(feedId)).thenReturn(Optional.of(feed));
+        when(imageRepository.findByTypeAndRefId(ImageType.FEED,feedId)).thenReturn(imagesList);
 
         feedService.deleteFeed(userId, feedId);
 
         //then
-        verify(imageRepository, times(1)).deleteByTypeAndRefId(ImageType.FEED, feedId);
+        verify(imageRepository, times(1)).findByTypeAndRefId(ImageType.FEED, feedId);
+        verify(imageRepository, times(1)).deleteAll(imagesList);
+        verify(fileService, times(2)).deleteS3Object(anyString());
         verify(feedRepository, times(1)).delete(any(Feed.class));
 
+    }
+    @Test
+    @DisplayName("피드 조회하기")
+    void getFeed(){
+        Long feedId = 100L;
+        Long userId = 1L;
 
-//        doNothing().when(bookRepository).delete(any(Book.class));
+//        FeedDetailResponse feedResponse = feedService.getFeed(feedId);
 
 
     }
