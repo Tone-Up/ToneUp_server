@@ -63,24 +63,32 @@ public class UserServiceTest {
     }
     @Test
     @DisplayName("프로필 수정")
-    void updateProfile(){
+    void updateProfile() {
+        // profileImage mock 준비
+        Images profileImageMock = mock(Images.class);
+        when(profileImageMock.getId()).thenReturn(1L);
+        when(profileImageMock.getS3Key()).thenReturn("some-s3-key");
 
+        // UserEntity mock 준비
+        UserEntity mockEntity = mock(UserEntity.class);
+        when(mockEntity.getProfileImageId()).thenReturn(profileImageMock);
+
+        User mockDomain = mock(User.class);
+        when(mockEntity.toDomain()).thenReturn(mockDomain);
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(mockEntity));
+
+        // updateProfileRequest 생성
         UpdateProfileRequest updateProfileRequest = UpdateProfileRequest.builder()
                 .bio("updateBio")
                 .build();
-
-
-        UserEntity mockEntity = mock(UserEntity.class);
-        User mockDomain = mock(User.class);
-
-        when(userRepository.findById(1L)).thenReturn(Optional.of(mockEntity));
-        when(mockEntity.toDomain()).thenReturn(mockDomain);
 
         // when
         userservice.updateProfile(1L, updateProfileRequest);
 
         // then
-        verify(mockDomain).changeBio("updateBio");
+        verify(mockDomain).changeBio(updateProfileRequest.getBio());
+        verify(fileService).deleteS3Object("some-s3-key");
         verify(mockEntity).changeProfile(mockDomain);
     }
 
