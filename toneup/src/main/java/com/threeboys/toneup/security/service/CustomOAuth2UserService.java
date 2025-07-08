@@ -1,5 +1,7 @@
 package com.threeboys.toneup.security.service;
 
+import com.threeboys.toneup.common.domain.Images;
+import com.threeboys.toneup.common.repository.ImageRepository;
 import com.threeboys.toneup.security.CustomOAuth2User;
 import com.threeboys.toneup.security.provider.ProviderType;
 import com.threeboys.toneup.security.response.GoogleResponse;
@@ -9,6 +11,7 @@ import com.threeboys.toneup.user.domain.User;
 import com.threeboys.toneup.user.dto.UserDTO;
 import com.threeboys.toneup.user.entity.UserEntity;
 import com.threeboys.toneup.user.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
@@ -19,12 +22,11 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     private final UserRepository userRepository;
-    public CustomOAuth2UserService(UserRepository userRepository) {
+    private final ImageRepository imageRepository;
 
-        this.userRepository = userRepository;
-    }
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -46,22 +48,25 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         }
 
         String name = oAuth2Response.getName();
-        String Email = oAuth2Response.getEmail();
+        String email = oAuth2Response.getEmail();
         String providerId = oAuth2Response.getProviderId();
         ProviderType providerType = ProviderType.valueOf(oAuth2Response.getProvider().toUpperCase());
         //이 부분 중복 닉네임 안생기게 랜덤값 부여 메서드 추가
         String nickname = name+"_"+providerId;
 
         UserEntity socialUser =    userRepository.findByProviderAndProviderId(providerType, oAuth2Response.getProviderId())
-                .map(userEntity -> {
-                    // 정보 업데이트
-                    userEntity.setName(name);
-                    userEntity.setEmail(Email);
-                    return userRepository.save(userEntity);
-                })
+//                .map(userEntity -> {
+//                    // 정보 업데이트
+//                    userEntity.setName(name);
+//                    userEntity.setEmail(Email);
+//                    return userRepository.save(userEntity);
+//                })
                 .orElseGet(() -> {
+                    // 기본 프로필 이미지 추가(기본 프로필 이미지 id = 0)
+                    // 이미지 없을때 예외 처리 해야하나
+                    Images profileImage = imageRepository.findById(0L).orElseThrow();
                     // 회원가입
-                    UserEntity newUser = new UserEntity(name,nickname, providerType, providerId, Email);
+                    UserEntity newUser = new UserEntity(name,nickname, providerType, providerId, email, profileImage);
                     return userRepository.save(newUser);
                 });
         String personalColor;

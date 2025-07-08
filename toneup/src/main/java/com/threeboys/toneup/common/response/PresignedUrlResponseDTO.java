@@ -8,5 +8,5 @@ import lombok.Data;
 public class PresignedUrlResponseDTO {
     private String fileName;
     private String uploadUrl;
-//    private String fileUrl;
+    private String fileUrl;
 }

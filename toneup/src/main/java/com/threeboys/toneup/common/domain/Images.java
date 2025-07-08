@@ -2,9 +2,12 @@ package com.threeboys.toneup.common.domain;
 
 import jakarta.persistence.*;
 import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
-//@NoArgsConstructor
+@Getter
+@NoArgsConstructor
 public class Images {
 
     @Id
@@ -26,5 +29,9 @@ public class Images {
         this.type = type;
         this.ImageOrder = order;
         this.s3Key = s3Key;
+    }
+
+    public void changeProfileImageUrl(String url){
+        this.url = url;
     }
 }

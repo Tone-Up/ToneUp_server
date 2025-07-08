@@ -1,13 +1,10 @@
 package com.threeboys.toneup.user.dto;
 
 import com.threeboys.toneup.user.entity.UserEntity;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.Objects;
-
+@Data
 @NoArgsConstructor
 public class ProfileResponse {
     private Long userId;
@@ -29,14 +26,15 @@ public class ProfileResponse {
         this.following = following;
     }
 
-    public static ProfileResponse from(UserEntity userEntity, int follower, int following) {
+    public static ProfileResponse from(UserEntity userEntity, String profileImageUrl, int follower, int following) {
         return ProfileResponse.builder()
                 .userId(userEntity.getId())
                 .nickname(userEntity.getNickname())
-                .personalColor(userEntity.getPersonalColor().toString())
+                .personalColor(userEntity.getPersonalColor().getPersonalColorType().toString())
                 .bio(userEntity.getBio())
                 .follower(follower)
                 .following(following)
+                .profileImageUrl(profileImageUrl)
                 .build();
     }
 
