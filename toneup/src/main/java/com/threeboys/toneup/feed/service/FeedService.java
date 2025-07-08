@@ -4,7 +4,10 @@ import com.threeboys.toneup.common.domain.ImageType;
 import com.threeboys.toneup.common.domain.Images;
 import com.threeboys.toneup.common.exception.FORBIDDENException;
 import com.threeboys.toneup.common.repository.ImageRepository;
+import com.threeboys.toneup.common.service.FileService;
 import com.threeboys.toneup.feed.domain.Feed;
+import com.threeboys.toneup.feed.dto.FeedDetailDto;
+import com.threeboys.toneup.feed.dto.FeedDetailResponse;
 import com.threeboys.toneup.feed.dto.FeedRequest;
 import com.threeboys.toneup.feed.dto.FeedResponse;
 import com.threeboys.toneup.feed.exception.FeedNotFoundException;
@@ -23,6 +26,7 @@ public class FeedService {
     private final FeedRepository feedRepository;
     private final UserRepository userRepository;
     private final ImageRepository imageRepository;
+    private final FileService fileService;
 
     @Transactional
     public FeedResponse createFeed(Long userId, FeedRequest feedRequest){
@@ -44,9 +48,13 @@ public class FeedService {
         Feed feed = feedRepository.findById(feedId).orElseThrow(FeedNotFoundException::new);
         //작성자인지 검증
         feed.validateOwner(userId);
-        imageRepository.deleteByTypeAndRefId(ImageType.FEED,feedId);
 
-        //s3 변경된 기존 이미지 삭제 필요? fileService.changeFeedImage
+        //s3 기존 이미지 삭제 + images 테이블 삭제
+        List<Images> imagesList = imageRepository.findByTypeAndRefId(ImageType.FEED, feedId);
+        imagesList.forEach(images -> {fileService.deleteS3Object(images.getS3Key());});
+        imageRepository.deleteAll(imagesList);
+
+
 
         feed.changeFeed(feedRequest.getContent(), feedRequest.getImageUrls());
         imageRepository.saveAll(feed.getImageUrlList());
@@ -57,10 +65,25 @@ public class FeedService {
     public void deleteFeed(Long userId, Long feedId) {
         Feed feed = feedRepository.findById(feedId).orElseThrow(FeedNotFoundException::new);
         feed.validateOwner(userId);
-        imageRepository.deleteByTypeAndRefId(ImageType.FEED,feedId);
 
-        //s3 삭제할 이미지 삭제하기 fileService.deleteFeedImage
+        //s3 기존 이미지 삭제 + images 테이블 삭제
+        List<Images> imagesList = imageRepository.findByTypeAndRefId(ImageType.FEED, feedId);
+        imagesList.forEach(images -> {fileService.deleteS3Object(images.getS3Key());});
+        imageRepository.deleteAll(imagesList);
 
         feedRepository.delete(feed);
+    }
+
+    public FeedDetailResponse getFeed(Long userId , Long feedId) {
+        //다중 조인으로 전체 조회(프로필, 피드 ,이미지들, 좋아요여부)
+        List<FeedDetailDto> feedDetailDtoList = feedRepository.findFeedWithUserAndImageAndIsLiked(feedId, userId);
+        // 이미지 s3Key로 s3 조회해서 url 획득 + 프로필 이미지도 획득
+        List<String> imageUrls = feedDetailDtoList.stream()
+                .map(feedDetailDto -> fileService.getPreSignedUrl(feedDetailDto.getFeedImageS3Key()))
+                .toList();
+        String profileImageUrl = fileService.getPreSignedUrl(feedDetailDtoList.getFirst().getProfileS3Key());
+
+        // groupBy로 묶고 dto에 넣어서 반환
+        return FeedDetailResponse.from(feedDetailDtoList.getFirst(), profileImageUrl,imageUrls);
     }
 }

@@ -44,15 +44,17 @@ public class FileService {
     public List<PresignedUrlResponseDTO> generatePreSignedUrl(String prefix, FileNamesDTO fileNames) {
         List<PresignedUrlResponseDTO> files = new ArrayList<>();
         for(String fileName : fileNames.getFileNames()){
+            String filePathName = "";
             if(prefix!=null && !prefix.isBlank()) {
-                fileName = createPath(prefix, fileName);
+                filePathName = createPath(prefix, fileName);
             }
 
-            GeneratePresignedUrlRequest generatePresignedUrlRequest = getGeneratePreSignedUrlRequest(bucket, fileName, HttpMethod.PUT);
+            GeneratePresignedUrlRequest generatePresignedUrlRequest = getGeneratePreSignedUrlRequest(bucket, filePathName, HttpMethod.PUT);
             URL url = amazonS3.generatePresignedUrl(generatePresignedUrlRequest);
             PresignedUrlResponseDTO fileResponseDTO =  PresignedUrlResponseDTO.builder()
                     .fileName(fileName)
                     .uploadUrl(url.toString())
+                    .fileUrl(filePathName)
                     .build();
             files.add(fileResponseDTO);
         }
