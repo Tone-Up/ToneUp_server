@@ -5,6 +5,7 @@ import com.threeboys.toneup.common.domain.ImageType;
 import com.threeboys.toneup.common.domain.QImages;
 import com.threeboys.toneup.feed.domain.QFeed;
 import com.threeboys.toneup.feed.dto.FeedDetailDto;
+import com.threeboys.toneup.feed.dto.FeedPreviewResponse;
 import com.threeboys.toneup.feed.dto.QFeedDetailDto;
 import com.threeboys.toneup.feedLike.domain.QFeedsLike;
 import com.threeboys.toneup.user.entity.QUserEntity;
@@ -12,6 +13,7 @@ import jakarta.persistence.EntityManager;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Repository
@@ -30,6 +32,9 @@ public class CustomFeedRepositoryImpl implements CustomFeedRepository {
         QImages pi = QImages.images;
         QImages fi = new QImages("fi"); // 같은 테이블 두 번 조인
         QFeedsLike l = QFeedsLike.feedsLike;
+        QFeedsLike totalLikes = new QFeedsLike("totalLikes");
+
+//        QFeedsLike userId
 //            @Query("""
 //        SELECT new com.threeboys.toneup.feed.dto.FeedDetailDto(
 //            f.id,f.content, u.id, u.nickname, pi.s3Key, fi.s3Key, CASE WHEN l.id IS NOT NULL THEN true ELSE false END )
@@ -49,6 +54,7 @@ public class CustomFeedRepositoryImpl implements CustomFeedRepository {
                         u.nickname,
                         pi.s3Key,
                         fi.s3Key,
+//                        ,
                         l.id.isNotNull()
                 )).from(f)
                 .join(f.userId, u)
@@ -58,5 +64,28 @@ public class CustomFeedRepositoryImpl implements CustomFeedRepository {
                 .where(f.id.eq(feedId))
                 .orderBy(fi.ImageOrder.asc())
                 .fetch();
+    }
+    public List<FeedPreviewResponse> findFeedPreviewsWithImageAndIsLiked(Long feedId, Long userId, Long cursor, int pageSize){
+        QFeed feed = QFeed.feed;
+        QImages image = QImages.images;
+        QFeedsLike like = QFeedsLike.feedsLike;
+//
+//        jpaQueryFactory.select(new QFeedPreviewResponse(feed.id, image.s3Key, like.id.isNotNull()))
+//                .from(feed)
+//                .leftJoin(image)
+//                .on(image.refId.eq(feed.id)
+//                        .and(image.type.eq(ImageType.FEED))
+//                        .and(image.ImageOrder.eq(0)))
+//                .leftJoin(like)
+//                .on(like.feed.id.eq(feed.id)
+//                        .and(like.user.id.eq(userId)))
+//                .where(
+//                        cursor == null ? null : feed.id.lt(cursor)
+//                )
+//                .orderBy(feed.id.desc())
+//                .limit(pageSize)
+//                .fetch();
+//
+        return null ;
     }
 }
