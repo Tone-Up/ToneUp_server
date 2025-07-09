@@ -2,6 +2,7 @@ package com.threeboys.toneup.personalColor.controller;
 
 import com.threeboys.toneup.common.response.StandardResponse;
 import com.threeboys.toneup.personalColor.domain.PersonalColor;
+import com.threeboys.toneup.personalColor.domain.PersonalColorType;
 import com.threeboys.toneup.personalColor.dto.PersonalColorResponse;
 import com.threeboys.toneup.personalColor.repository.PersonalColorRepository;
 import com.threeboys.toneup.personalColor.service.PersonalColorService;
@@ -44,6 +45,8 @@ public class PersonalColorController {
         try{
             Thread.sleep(4000);
             UserEntity user = userRepository.findById(userId).orElseThrow();
+            PersonalColor personalColor1 = PersonalColor.builder().personalColorType(PersonalColorType.ATUMN).build();
+            personalColorRepository.save(personalColor1);
             PersonalColor personalColorEntity = personalColorRepository.findById(1).orElseThrow();
             user.updatePersonalColor(personalColorEntity);
             personalColor = personalColorEntity.getPersonalColorType().toString();
