@@ -12,6 +12,7 @@ public class FeedDetailDto {
     private String nickname;
     private String profileS3Key;
     private String feedImageS3Key;
+//    private int likeCount;
     private boolean isLiked;
 
     @QueryProjection
@@ -22,6 +23,7 @@ public class FeedDetailDto {
         this.nickname = nickname;
         this.profileS3Key = profileS3Key;
         this.feedImageS3Key = feedImageS3Key;
+//        this.likeCount = likeCount;
         this.isLiked = isLiked;
     }
 }

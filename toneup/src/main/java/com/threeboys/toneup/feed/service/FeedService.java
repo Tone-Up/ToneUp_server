@@ -2,14 +2,10 @@ package com.threeboys.toneup.feed.service;
 
 import com.threeboys.toneup.common.domain.ImageType;
 import com.threeboys.toneup.common.domain.Images;
-import com.threeboys.toneup.common.exception.FORBIDDENException;
 import com.threeboys.toneup.common.repository.ImageRepository;
 import com.threeboys.toneup.common.service.FileService;
 import com.threeboys.toneup.feed.domain.Feed;
-import com.threeboys.toneup.feed.dto.FeedDetailDto;
-import com.threeboys.toneup.feed.dto.FeedDetailResponse;
-import com.threeboys.toneup.feed.dto.FeedRequest;
-import com.threeboys.toneup.feed.dto.FeedResponse;
+import com.threeboys.toneup.feed.dto.*;
 import com.threeboys.toneup.feed.exception.FeedNotFoundException;
 import com.threeboys.toneup.feed.repository.FeedRepository;
 import com.threeboys.toneup.user.entity.UserEntity;
@@ -86,17 +82,16 @@ public class FeedService {
         // groupBy로 묶고 dto에 넣어서 반환
         return FeedDetailResponse.from(feedDetailDtoList.getFirst(), profileImageUrl,imageUrls);
     }
-//
-//    public FeedDetailResponse getFeed(Long userId , Long feedId) {
+
+//    public FeedPageItemResponse getFeedPreviews(Long userId , Long feedId, Long cursor, int limit) {
 //        //다중 조인으로 전체 조회(프로필, 피드 ,이미지들, 좋아요여부)
-//        List<FeedDetailDto> feedDetailDtoList = feedRepository.findFeedWithUserAndImageAndIsLiked(feedId, userId);
+//        List<FeedPreviewResponse> feedPreviewResponseList = feedRepository.findFeedPreviewsWithImageAndIsLiked(feedId, userId, cursor, limit);
 //        // 이미지 s3Key로 s3 조회해서 url 획득 + 프로필 이미지도 획득
 //        List<String> imageUrls = feedDetailDtoList.stream()
 //                .map(feedDetailDto -> fileService.getPreSignedUrl(feedDetailDto.getFeedImageS3Key()))
 //                .toList();
 //        String profileImageUrl = fileService.getPreSignedUrl(feedDetailDtoList.getFirst().getProfileS3Key());
 //
-//        // groupBy로 묶고 dto에 넣어서 반환
-//        return FeedDetailResponse.from(feedDetailDtoList.getFirst(), profileImageUrl,imageUrls);
+//        return new FeedPageItemResponse();
 //    }
 }
