@@ -5,6 +5,7 @@ import com.amazonaws.SdkClientException;
 import com.threeboys.toneup.common.response.ErrorResponse;
 import com.threeboys.toneup.common.response.StandardResponse;
 import com.threeboys.toneup.security.exception.InvalidRefreshTokenException;
+import io.jsonwebtoken.ExpiredJwtException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -37,4 +38,15 @@ public class GlobalExceptionHandler {
         );
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
     }
+
+    @ExceptionHandler(ExpiredJwtException.class)
+    public ResponseEntity<ErrorResponse<Object>> handleJwtException(ExpiredJwtException ex) {
+        log.error(ex.getMessage());
+        ErrorResponse<Object> body = new ErrorResponse<>(
+                //추후 ErrorCode(enum 타입)으로 관리 필요
+                401, "EXPIRED_SOCIAL_TOKEN", ErrorMessages.EXPIRED_SOCIAL_TOKEN
+        );
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
+    }
+
 }

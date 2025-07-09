@@ -79,28 +79,11 @@ public class JWTUtil {
 //                .signWith(secretKey)
 //                .compact();
     }
-    public boolean isValidToken(String token) {
-        try {
+    public void validateToken(String token) throws JwtException {
             // 토큰 파싱 및 서명 검증
             Jwts.parser()
-                    .setSigningKey(secretKey) // 비밀키 설정 (SecretKey 객체)
+                    .verifyWith(secretKey) // 비밀키 설정 (SecretKey 객체)
                     .build()
                     .parseClaimsJws(token);
-            // 파싱 성공 시 예외 없으므로 토큰은 유효함
-            return true;
-        } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
-            // 서명 오류 또는 토큰 구조가 이상할 때
-            System.out.println("Invalid JWT signature");
-        } catch (ExpiredJwtException e) {
-            // 토큰 만료됨
-            System.out.println("Expired JWT token");
-        } catch (UnsupportedJwtException e) {
-            // 지원하지 않는 JWT일 때
-            System.out.println("Unsupported JWT token");
-        } catch (IllegalArgumentException e) {
-            // 빈 토큰 등 잘못된 입력일 때
-            System.out.println("JWT claims string is empty.");
-        }
-        return false; // 검증 실패 시 false 반환
     }
 }
