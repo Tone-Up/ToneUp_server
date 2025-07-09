@@ -11,4 +11,5 @@ public class ErrorMessages {
     public static final String FEED_NOT_FOUND = "수정할 피드를 찾을 수 없습니다.";
     public static final String FORBIDDEN = "작성자 본인이 아니여서 수정할 권한이 없습니다.";
     public static final String S3_DELETE_FAILED = "s3 이미지 삭제 중 오류가 발생했습니다.";
+    public static final String EXPIRED_SOCIAL_TOKEN = "만료된 소셜 로그인 토큰입니다.";
 }
