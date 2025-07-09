@@ -86,4 +86,17 @@ public class FeedService {
         // groupBy로 묶고 dto에 넣어서 반환
         return FeedDetailResponse.from(feedDetailDtoList.getFirst(), profileImageUrl,imageUrls);
     }
+//
+//    public FeedDetailResponse getFeed(Long userId , Long feedId) {
+//        //다중 조인으로 전체 조회(프로필, 피드 ,이미지들, 좋아요여부)
+//        List<FeedDetailDto> feedDetailDtoList = feedRepository.findFeedWithUserAndImageAndIsLiked(feedId, userId);
+//        // 이미지 s3Key로 s3 조회해서 url 획득 + 프로필 이미지도 획득
+//        List<String> imageUrls = feedDetailDtoList.stream()
+//                .map(feedDetailDto -> fileService.getPreSignedUrl(feedDetailDto.getFeedImageS3Key()))
+//                .toList();
+//        String profileImageUrl = fileService.getPreSignedUrl(feedDetailDtoList.getFirst().getProfileS3Key());
+//
+//        // groupBy로 묶고 dto에 넣어서 반환
+//        return FeedDetailResponse.from(feedDetailDtoList.getFirst(), profileImageUrl,imageUrls);
+//    }
 }
