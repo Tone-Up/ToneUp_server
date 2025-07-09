@@ -11,18 +11,18 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface FeedRepository extends JpaRepository<Feed, Long> {
+public interface FeedRepository extends JpaRepository<Feed, Long> , CustomFeedRepository{
 
-    @Query("""
-    SELECT new com.threeboys.toneup.feed.dto.FeedDetailDto(
-        f.id,f.content, u.id, u.nickname, pi.s3Key, fi.s3Key, CASE WHEN l.id IS NOT NULL THEN true ELSE false END )
-    FROM Feed f
-    JOIN f.userId u
-    LEFT JOIN u.profileImageId pi
-    LEFT JOIN Images fi ON fi.type = 'FEED' AND fi.refId = :feedId
-    LEFT JOIN FeedsLike l ON l.feed.id = f.id AND l.user.id = :loginUserId
-    WHERE f.id = :feedId
-    ORDER BY fi.ImageOrder ASC
-    """)
-    List<FeedDetailDto> findFeedWithUserAndImageAndIsLiked(@Param("feedId") Long feedId, @Param("loginUserId") Long userId);
+//    @Query("""
+//    SELECT new com.threeboys.toneup.feed.dto.FeedDetailDto(
+//        f.id,f.content, u.id, u.nickname, pi.s3Key, fi.s3Key, CASE WHEN l.id IS NOT NULL THEN true ELSE false END )
+//    FROM Feed f
+//    JOIN f.userId u
+//    LEFT JOIN u.profileImageId pi
+//    LEFT JOIN Images fi ON fi.type = 'FEED' AND fi.refId = :feedId
+//    LEFT JOIN FeedsLike l ON l.feed.id = f.id AND l.user.id = :loginUserId
+//    WHERE f.id = :feedId
+//    ORDER BY fi.ImageOrder ASC
+//    """)
+//    List<FeedDetailDto> findFeedWithUserAndImageAndIsLiked(@Param("feedId") Long feedId, @Param("loginUserId") Long userId);
 }
