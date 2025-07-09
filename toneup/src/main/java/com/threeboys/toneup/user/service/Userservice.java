@@ -34,7 +34,7 @@ public class Userservice {
                 .orElseGet(() -> {
                     // 기본 프로필 이미지 추가(기본 프로필 이미지 id = 0)
                     // 이미지 없을때 예외 처리 해야하나
-                    Images profileImage = imageRepository.findById(0L).orElseThrow();
+                    Images profileImage = imageRepository.findById(1L).orElseThrow();
                     // 회원가입
                     UserEntity newUser = new UserEntity(name,nickname, providerType, providerId, email, profileImage);
                     return userRepository.save(newUser);
