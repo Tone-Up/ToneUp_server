@@ -58,7 +58,7 @@ public class GoogleLoginService implements OAuthLoginService{
             String providerId =  payload.getSubject();
             String nickname = name+"_"+providerId;
 
-            // 3. (예시) 회원 가입 또는 로그인 처리 (생략 가능)
+            // 3. 회원 가입 또는 로그인 처리
             UserEntity socialUser = userservice.registerUser(name,nickname, email, providerType, providerId);
             String personalColorType = (socialUser.getPersonalColor()==null) ? null : socialUser.getPersonalColor().getPersonalColorType().toString();
 

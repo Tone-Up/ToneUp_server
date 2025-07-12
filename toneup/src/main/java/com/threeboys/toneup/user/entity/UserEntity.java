@@ -37,7 +37,7 @@ public class UserEntity {
     private String email;
 
     @OneToOne(fetch = FetchType.EAGER,cascade = CascadeType.ALL)
-    @JoinColumn(name = "profile_image_id")
+    @JoinColumn(name = "profile_image_id", unique = false)
     private Images profileImageId;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -90,5 +90,11 @@ public class UserEntity {
         this.nickname  = user.getNickname();
         this.bio =user.getBio();
         this.profileImageId.changeProfileImageUrl(user.getProfileImageUrl());
+    }
+
+    public void changeProfileCreateImage(User user, Images image) {
+        this.nickname  = user.getNickname();
+        this.bio =user.getBio();
+        this.profileImageId = image;
     }
 }

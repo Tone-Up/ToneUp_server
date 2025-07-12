@@ -31,7 +31,7 @@ public class Images {
         this.s3Key = s3Key;
     }
 
-    public void changeProfileImageUrl(String url){
-        this.url = url;
+    public void changeProfileImageUrl(String s3Key){
+        this.s3Key = s3Key;
     }
 }

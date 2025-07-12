@@ -1,6 +1,7 @@
 package com.threeboys.toneup.user.service;
 
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
+import com.threeboys.toneup.common.domain.ImageType;
 import com.threeboys.toneup.common.domain.Images;
 import com.threeboys.toneup.common.repository.ImageRepository;
 import com.threeboys.toneup.common.service.FileService;
@@ -23,6 +24,7 @@ public class Userservice {
     private final ImageRepository imageRepository;
     private final FileService fileService;
 
+    private static final String DEFAULT_PROFILE_IMAGE ="images/DEFAULT_PROFILE_IMAGE";
     public UserEntity registerUser(String name, String nickname, String email, ProviderType providerType, String providerId){
         return userRepository.findByProviderAndProviderId(providerType,providerId)
 //                .map(userEntity -> {
@@ -34,8 +36,14 @@ public class Userservice {
                 .orElseGet(() -> {
                     // 기본 프로필 이미지 추가(기본 프로필 이미지 id = 0)
                     // 이미지 없을때 예외 처리 해야하나
-                    Images profileImage = new Images();
-//                    Images profileImage = imageRepository.findById(0L).orElseThrow();
+                    Images profileImage = Images.builder()
+                        .url(DEFAULT_PROFILE_IMAGE)
+                        .type(ImageType.PROFILE)
+//                        .refId()
+                        .order(0)
+                        .s3Key(DEFAULT_PROFILE_IMAGE)
+                        .build();
+
                     // 회원가입
                     UserEntity newUser = new UserEntity(name,nickname, providerType, providerId, email, profileImage);
                     return userRepository.save(newUser);
@@ -62,6 +70,7 @@ public class Userservice {
     public void updateProfile(Long userId, UpdateProfileRequest updateProfileRequest) {
         UserEntity userEntity = userRepository.findById(userId).orElseThrow(()->new UserNotFoundException(userId));
         User user = userEntity.toDomain();
+        System.out.println(userEntity.getProfileImageId());
         Long profileId = userEntity.getProfileImageId().getId();
         String s3Key = userEntity.getProfileImageId().getS3Key();
         //Mapper로 변경 고려 필요? or changeProfile 안에 넣기?
@@ -70,9 +79,23 @@ public class Userservice {
         if(updateProfileRequest.getProfileImageUrl()!=null) user.changeProfileImage(updateProfileRequest.getProfileImageUrl());
 
         //s3 기존 이미지 삭제 필요?(기본 이미지였던 경우에는 제외) fileService.changeProfileImage(?)
-        if(profileId!=0)fileService.deleteS3Object(s3Key);
+        //기본 프로필 이미지가 아닌 경우 현재 이미지 엔티티 s3Key값만 수정
+        if(!userEntity.getProfileImageId().getS3Key().equals(DEFAULT_PROFILE_IMAGE)) fileService.deleteS3Object(s3Key);
+
+        userEntity.changeProfile(user);
+
+//        Images image = userEntity.getProfileImageId();
+//        image.changeProfileImageUrl(user.getProfileImageUrl());
 
         //더티 체킹으로 이미지 url 변경
-        userEntity.changeProfile(user);
+//        Images image = Images.builder()
+//                .url(user.getProfileImageUrl())
+//                .type(ImageType.PROFILE)
+//                .refId(userId)
+//                .order(0)
+//                .s3Key(user.getProfileImageUrl())
+//                .build();
+
+
     }
 }
