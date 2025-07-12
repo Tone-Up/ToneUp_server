@@ -46,8 +46,7 @@ public class PersonalColorController {
             Thread.sleep(4000);
             UserEntity user = userRepository.findById(userId).orElseThrow();
             PersonalColor personalColor1 = PersonalColor.builder().personalColorType(PersonalColorType.ATUMN).build();
-            personalColorRepository.save(personalColor1);
-            PersonalColor personalColorEntity = personalColorRepository.findById(1).orElseThrow();
+            PersonalColor personalColorEntity= personalColorRepository.save(personalColor1);
             user.updatePersonalColor(personalColorEntity);
             personalColor = personalColorEntity.getPersonalColorType().toString();
         }catch (InterruptedException e){

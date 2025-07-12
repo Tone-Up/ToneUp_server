@@ -1,7 +1,10 @@
 package com.threeboys.toneup.feed.dto;
 
 import com.querydsl.core.annotations.QueryProjection;
+import lombok.Data;
+import lombok.Getter;
 
+@Data
 public class FeedPreviewResponse {
     private Long feedId;
     private String imageUrl;
