@@ -23,6 +23,7 @@ public class FeedDetailResponse {
                 .writer(new WriterResponse(feedDetailDto.getUserId(), feedDetailDto.getNickname(), profileUrl))
                 .content(feedDetailDto.getContent())
                 .createdAt(LocalDateTime.now())
+                .likeCount(feedDetailDto.getLikeCount())
                 .isLiked(feedDetailDto.isLiked())
                 .imageUrls(imageUrls)
                 .build();

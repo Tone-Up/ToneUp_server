@@ -32,6 +32,8 @@ public class Feed {
 
     private String content;
 
+    private int likeCount;
+
     @Transient
     private List<Images> imageUrlList = new ArrayList<>();
 

@@ -1,12 +1,12 @@
 package com.threeboys.toneup.feed.repository;
 
+import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.threeboys.toneup.common.domain.ImageType;
 import com.threeboys.toneup.common.domain.QImages;
 import com.threeboys.toneup.feed.domain.QFeed;
-import com.threeboys.toneup.feed.dto.FeedDetailDto;
-import com.threeboys.toneup.feed.dto.FeedPreviewResponse;
-import com.threeboys.toneup.feed.dto.QFeedDetailDto;
+import com.threeboys.toneup.feed.dto.*;
 import com.threeboys.toneup.feedLike.domain.QFeedsLike;
 import com.threeboys.toneup.user.entity.QUserEntity;
 import jakarta.persistence.EntityManager;
@@ -54,23 +54,70 @@ public class CustomFeedRepositoryImpl implements CustomFeedRepository {
                         u.nickname,
                         pi.s3Key,
                         fi.s3Key,
-//                        ,
+                        totalLikes.id.count().intValue(),
                         l.id.isNotNull()
                 )).from(f)
                 .join(f.userId, u)
                 .leftJoin(u.profileImageId, pi)
                 .leftJoin(fi).on(fi.type.eq(ImageType.FEED).and(fi.refId.eq(feedId)))
                 .leftJoin(l).on(l.feed.id.eq(f.id).and(l.user.id.eq(userId)))
+                .leftJoin(totalLikes).on(totalLikes.feed.id.eq(f.id))
                 .where(f.id.eq(feedId))
+                .groupBy(
+                        f.id, f.content, u.id, u.nickname,
+                        pi.s3Key, fi.s3Key, l.id
+                )
                 .orderBy(fi.ImageOrder.asc())
                 .fetch();
     }
-    public List<FeedPreviewResponse> findFeedPreviewsWithImageAndIsLiked(Long feedId, Long userId, Long cursor, int pageSize){
+    public FeedPageItemResponse findFeedPreviewsWithImageAndIsLiked(Long userId, Long cursor, int limit){
         QFeed feed = QFeed.feed;
         QImages image = QImages.images;
         QFeedsLike like = QFeedsLike.feedsLike;
-//
-//        jpaQueryFactory.select(new QFeedPreviewResponse(feed.id, image.s3Key, like.id.isNotNull()))
+
+        List<FeedPreviewResponse> feedPreviewResponseList = jpaQueryFactory.select(
+                new QFeedPreviewResponse(
+                        feed.id,
+                        image.s3Key,
+                        like.id.isNotNull()))
+                .from(feed)
+                .leftJoin(image)
+                .on(image.refId.eq(feed.id)
+                        .and(image.type.eq(ImageType.FEED))
+                        .and(image.ImageOrder.eq(0)))
+                .leftJoin(like)
+                .on(like.feed.id.eq(feed.id)
+                        .and(like.user.id.eq(userId)))
+                .where(
+                        cursor == null ? null : feed.id.lt(cursor)
+                )
+                .orderBy(feed.id.desc())
+                .limit(limit)
+                .fetch();
+        boolean hasNext = feedPreviewResponseList.size() > limit;
+        Long nextCursor = feedPreviewResponseList.getLast().getFeedId();
+
+        return new FeedPageItemResponse(feedPreviewResponseList, nextCursor, hasNext) ;
+    }
+
+
+//    public FeedPageItemResponse findRankingFeedPreviewsWithImageAndIsLiked(Long userId, Long cursorId, Integer cursorLikeCount,  int limit){
+//        QFeed feed = QFeed.feed;
+//        QImages image = QImages.images;
+//        QFeedsLike like = QFeedsLike.feedsLike;
+//        BooleanBuilder cursorCondition = new BooleanBuilder();
+//        if (cursorLikeCount != null && cursorId != null) {
+//            cursorCondition.or(feed.likeCount.lt(cursorLikeCount));
+//            cursorCondition.or(
+//                    feed.likeCount.eq(cursorLikeCount)
+//                            .and(feed.id.lt(cursorId))
+//            );
+//        }
+//        List<FeedPreviewResponse> feedPreviewResponseList = jpaQueryFactory.select(
+//                        new QFeedPreviewResponse(
+//                                feed.id,
+//                                image.s3Key,
+//                                like.id.isNotNull()))
 //                .from(feed)
 //                .leftJoin(image)
 //                .on(image.refId.eq(feed.id)
@@ -79,13 +126,13 @@ public class CustomFeedRepositoryImpl implements CustomFeedRepository {
 //                .leftJoin(like)
 //                .on(like.feed.id.eq(feed.id)
 //                        .and(like.user.id.eq(userId)))
-//                .where(
-//                        cursor == null ? null : feed.id.lt(cursor)
-//                )
-//                .orderBy(feed.id.desc())
-//                .limit(pageSize)
+//                .where(cursorCondition)
+//                .orderBy(feed.likeCount.desc(), feed.id.desc())
+//                .limit(limit)
 //                .fetch();
+//        boolean hasNext = feedPreviewResponseList.size() > limit;
+//        Long nextCursor = feedPreviewResponseList.getLast().getFeedId();
 //
-        return null ;
-    }
+//        return new FeedPageItemResponse(feedPreviewResponseList, nextCursor, hasNext) ;
+//    }
 }

@@ -83,15 +83,23 @@ public class FeedService {
         return FeedDetailResponse.from(feedDetailDtoList.getFirst(), profileImageUrl,imageUrls);
     }
 
-//    public FeedPageItemResponse getFeedPreviews(Long userId , Long feedId, Long cursor, int limit) {
-//        //다중 조인으로 전체 조회(프로필, 피드 ,이미지들, 좋아요여부)
-//        List<FeedPreviewResponse> feedPreviewResponseList = feedRepository.findFeedPreviewsWithImageAndIsLiked(feedId, userId, cursor, limit);
-//        // 이미지 s3Key로 s3 조회해서 url 획득 + 프로필 이미지도 획득
-//        List<String> imageUrls = feedDetailDtoList.stream()
-//                .map(feedDetailDto -> fileService.getPreSignedUrl(feedDetailDto.getFeedImageS3Key()))
-//                .toList();
-//        String profileImageUrl = fileService.getPreSignedUrl(feedDetailDtoList.getFirst().getProfileS3Key());
-//
-//        return new FeedPageItemResponse();
-//    }
+    public FeedPageItemResponse getFeedPreviews(Long userId , Long cursor, int limit) {
+        //다중 조인으로 전체 조회(프로필, 피드 ,이미지들, 좋아요여부)
+        FeedPageItemResponse feedPageItemResponse = feedRepository.findFeedPreviewsWithImageAndIsLiked( userId, cursor, limit);
+        // 이미지 s3Key로 s3 조회해서 url 획득 + 프로필 이미지도 획득  
+        feedPageItemResponse.getFeeds().forEach(feedPreviewResponse -> {
+            feedPreviewResponse.setImageUrl(fileService.getPreSignedUrl(feedPreviewResponse.getImageUrl()));
+        });
+        return feedPageItemResponse;
+    }
+
+    public FeedPageItemResponse getRankingFeedPreviews(Long userId , Long cursor, int limit) {
+        //다중 조인으로 전체 조회(프로필, 피드 ,이미지들, 좋아요여부)
+        FeedPageItemResponse feedPageItemResponse = feedRepository.findFeedPreviewsWithImageAndIsLiked( userId, cursor, limit);
+        // 이미지 s3Key로 s3 조회해서 url 획득 + 프로필 이미지도 획득
+        feedPageItemResponse.getFeeds().forEach(feedPreviewResponse -> {
+            feedPreviewResponse.setImageUrl(fileService.getPreSignedUrl(feedPreviewResponse.getImageUrl()));
+        });
+        return feedPageItemResponse;
+    }
 }
