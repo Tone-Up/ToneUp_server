@@ -2,6 +2,7 @@ package com.threeboys.toneup.feed.repository;
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.threeboys.toneup.common.domain.ImageType;
 import com.threeboys.toneup.common.domain.QImages;
@@ -101,38 +102,51 @@ public class CustomFeedRepositoryImpl implements CustomFeedRepository {
     }
 
 
-//    public FeedPageItemResponse findRankingFeedPreviewsWithImageAndIsLiked(Long userId, Long cursorId, Integer cursorLikeCount,  int limit){
-//        QFeed feed = QFeed.feed;
-//        QImages image = QImages.images;
-//        QFeedsLike like = QFeedsLike.feedsLike;
-//        BooleanBuilder cursorCondition = new BooleanBuilder();
-//        if (cursorLikeCount != null && cursorId != null) {
-//            cursorCondition.or(feed.likeCount.lt(cursorLikeCount));
-//            cursorCondition.or(
-//                    feed.likeCount.eq(cursorLikeCount)
-//                            .and(feed.id.lt(cursorId))
-//            );
-//        }
-//        List<FeedPreviewResponse> feedPreviewResponseList = jpaQueryFactory.select(
-//                        new QFeedPreviewResponse(
-//                                feed.id,
-//                                image.s3Key,
-//                                like.id.isNotNull()))
-//                .from(feed)
-//                .leftJoin(image)
-//                .on(image.refId.eq(feed.id)
-//                        .and(image.type.eq(ImageType.FEED))
-//                        .and(image.ImageOrder.eq(0)))
-//                .leftJoin(like)
-//                .on(like.feed.id.eq(feed.id)
-//                        .and(like.user.id.eq(userId)))
-//                .where(cursorCondition)
-//                .orderBy(feed.likeCount.desc(), feed.id.desc())
-//                .limit(limit)
-//                .fetch();
-//        boolean hasNext = feedPreviewResponseList.size() > limit;
-//        Long nextCursor = feedPreviewResponseList.getLast().getFeedId();
-//
-//        return new FeedPageItemResponse(feedPreviewResponseList, nextCursor, hasNext) ;
-//    }
+    public FeedRankingPageItemResponse findRankingFeedPreviewsWithImageAndIsLiked(Long userId, String cursor,  int limit){
+        QFeed feed = QFeed.feed;
+        QImages image = QImages.images;
+        QFeedsLike like = QFeedsLike.feedsLike;
+        Integer cursorLikeCount =null;
+        Long cursorId = null;
+
+        if(cursor != null && !cursor.isBlank()){
+            String[] cursorList = cursor.split("_");
+            cursorLikeCount = Integer.parseInt(cursorList[0]);
+            cursorId = Long.parseLong(cursorList[1]);
+        }
+
+        BooleanBuilder cursorCondition = new BooleanBuilder();
+        if (cursorLikeCount != null && cursorId != null) {
+            cursorCondition.or(feed.likeCount.lt(cursorLikeCount));
+            cursorCondition.or(
+                    feed.likeCount.eq(cursorLikeCount)
+                            .and(feed.id.lt(cursorId))
+            );
+        }
+        List<FeedPreviewResponse> feedPreviewResponseList = jpaQueryFactory.select(
+                        new QFeedPreviewResponse(
+                                feed.id,
+                                image.s3Key,
+                                like.id.isNotNull()))
+                .from(feed)
+                .leftJoin(image)
+                .on(image.refId.eq(feed.id)
+                        .and(image.type.eq(ImageType.FEED))
+                        .and(image.ImageOrder.eq(0)))
+                .leftJoin(like)
+                .on(like.feed.id.eq(feed.id)
+                        .and(like.user.id.eq(userId)))
+                .where(cursorCondition)
+                .orderBy(feed.likeCount.desc(), feed.id.desc())
+                .limit(limit)
+                .fetch();
+        boolean hasNext = feedPreviewResponseList.size() > limit;
+
+        Long nextCursorId = (feedPreviewResponseList.getLast()==null) ? null : feedPreviewResponseList.getLast().getFeedId();
+        List<Integer> nextCursorCount = (nextCursorId==null) ? null : jpaQueryFactory.select(feed.likeCount).from(feed).where(feed.id.eq(nextCursorId)).fetch();
+
+        String nextCursor = (nextCursorId==null) ? null : nextCursorCount.getFirst()+"_"+ nextCursorId;
+
+        return new FeedRankingPageItemResponse(feedPreviewResponseList, nextCursor, hasNext) ;
+    }
 }

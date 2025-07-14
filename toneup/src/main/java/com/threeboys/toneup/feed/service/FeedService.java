@@ -18,6 +18,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class FeedService {
     private final FeedRepository feedRepository;
     private final UserRepository userRepository;
@@ -93,13 +94,13 @@ public class FeedService {
         return feedPageItemResponse;
     }
 
-    public FeedPageItemResponse getRankingFeedPreviews(Long userId , Long cursor, int limit) {
+    public FeedRankingPageItemResponse getRankingFeedPreviews(Long userId , String cursor, int limit) {
         //다중 조인으로 전체 조회(프로필, 피드 ,이미지들, 좋아요여부)
-        FeedPageItemResponse feedPageItemResponse = feedRepository.findFeedPreviewsWithImageAndIsLiked( userId, cursor, limit);
+        FeedRankingPageItemResponse feedRankingPageItemResponse = feedRepository.findRankingFeedPreviewsWithImageAndIsLiked( userId, cursor, limit);
         // 이미지 s3Key로 s3 조회해서 url 획득 + 프로필 이미지도 획득
-        feedPageItemResponse.getFeeds().forEach(feedPreviewResponse -> {
+        feedRankingPageItemResponse.getFeeds().forEach(feedPreviewResponse -> {
             feedPreviewResponse.setImageUrl(fileService.getPreSignedUrl(feedPreviewResponse.getImageUrl()));
         });
-        return feedPageItemResponse;
+        return feedRankingPageItemResponse;
     }
 }

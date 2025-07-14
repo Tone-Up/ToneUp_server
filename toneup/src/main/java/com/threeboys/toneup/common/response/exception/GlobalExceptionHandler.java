@@ -2,8 +2,14 @@ package com.threeboys.toneup.common.response.exception;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.SdkClientException;
+import com.threeboys.toneup.common.exception.FORBIDDENException;
 import com.threeboys.toneup.common.response.ErrorResponse;
 import com.threeboys.toneup.common.response.StandardResponse;
+import com.threeboys.toneup.diary.exception.DiaryNotFoundException;
+import com.threeboys.toneup.diary.exception.InvalidTitleLengthException;
+import com.threeboys.toneup.feed.exception.FeedNotFoundException;
+import com.threeboys.toneup.feed.exception.InvalidContentLengthException;
+import com.threeboys.toneup.feed.exception.InvalidImageCountException;
 import com.threeboys.toneup.security.exception.InvalidRefreshTokenException;
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.extern.slf4j.Slf4j;
@@ -44,9 +50,67 @@ public class GlobalExceptionHandler {
         log.error(ex.getMessage());
         ErrorResponse<Object> body = new ErrorResponse<>(
                 //추후 ErrorCode(enum 타입)으로 관리 필요
-                401, "EXPIRED_SOCIAL_TOKEN", ErrorMessages.EXPIRED_SOCIAL_TOKEN
+                401, "TOKEN_EXPIRED", ErrorMessages.TOKEN_EXPIRED
         );
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
     }
+
+    @ExceptionHandler(InvalidTitleLengthException.class)
+    public ResponseEntity<ErrorResponse<Object>> handleFeedAndDiaryException(InvalidTitleLengthException ex) {
+        log.error(ex.getMessage());
+        ErrorResponse<Object> body = new ErrorResponse<>(
+                //추후 ErrorCode(enum 타입)으로 관리 필요
+                400, "INVALID_TITLE_LENGTH", ErrorMessages.INVALID_TITLE_LENGTH
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    }
+    @ExceptionHandler(InvalidContentLengthException.class)
+    public ResponseEntity<ErrorResponse<Object>> handleFeedAndDiaryException(InvalidContentLengthException ex) {
+        log.error(ex.getMessage());
+        ErrorResponse<Object> body = new ErrorResponse<>(
+                //추후 ErrorCode(enum 타입)으로 관리 필요
+                400, "INVALID_CONTENT_LENGTH", ErrorMessages.INVALID_CONTENT_LENGTH
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    }
+
+    @ExceptionHandler(InvalidImageCountException.class)
+    public ResponseEntity<ErrorResponse<Object>> handleFeedAndDiaryException(InvalidImageCountException ex) {
+        log.error(ex.getMessage());
+        ErrorResponse<Object> body = new ErrorResponse<>(
+                //추후 ErrorCode(enum 타입)으로 관리 필요
+                400, "INVALID_IMAGE_COUNT", ErrorMessages.INVALID_IMAGE_COUNT
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    }
+    @ExceptionHandler(FORBIDDENException.class)
+    public ResponseEntity<ErrorResponse<Object>> handleFeedAndDiaryException(FORBIDDENException ex) {
+        log.error(ex.getMessage());
+        ErrorResponse<Object> body = new ErrorResponse<>(
+                //추후 ErrorCode(enum 타입)으로 관리 필요
+                403, "FORBIDDEN", ErrorMessages.FORBIDDEN
+        );
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
+    }
+    @ExceptionHandler(DiaryNotFoundException.class)
+    public ResponseEntity<ErrorResponse<Object>> handleDiaryException(DiaryNotFoundException ex) {
+        log.error(ex.getMessage());
+        ErrorResponse<Object> body = new ErrorResponse<>(
+                //추후 ErrorCode(enum 타입)으로 관리 필요
+                404, "DIARY_NOT_FOUND", ErrorMessages.DIARY_NOT_FOUND
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+    }
+
+    @ExceptionHandler(FeedNotFoundException.class)
+    public ResponseEntity<ErrorResponse<Object>> handleFeedException(FeedNotFoundException ex) {
+        log.error(ex.getMessage());
+        ErrorResponse<Object> body = new ErrorResponse<>(
+                //추후 ErrorCode(enum 타입)으로 관리 필요
+                404, "FEED_NOT_FOUND", ErrorMessages.FEED_NOT_FOUND
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+    }
+
 
 }

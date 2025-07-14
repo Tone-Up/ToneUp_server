@@ -1,5 +1,6 @@
 package com.threeboys.toneup.feed.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import lombok.Data;
 
@@ -13,6 +14,7 @@ public class FeedDetailResponse {
     private WriterResponse writer;
     private List<String> imageUrls;
     private String content;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime createdAt;
     private int likeCount;
     private boolean isLiked;

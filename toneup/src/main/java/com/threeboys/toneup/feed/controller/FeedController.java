@@ -2,10 +2,7 @@ package com.threeboys.toneup.feed.controller;
 
 import com.threeboys.toneup.common.response.StandardResponse;
 import com.threeboys.toneup.common.service.FileService;
-import com.threeboys.toneup.feed.dto.FeedDetailResponse;
-import com.threeboys.toneup.feed.dto.FeedPageItemResponse;
-import com.threeboys.toneup.feed.dto.FeedRequest;
-import com.threeboys.toneup.feed.dto.FeedResponse;
+import com.threeboys.toneup.feed.dto.*;
 import com.threeboys.toneup.feed.service.FeedService;
 import com.threeboys.toneup.security.CustomOAuth2User;
 import lombok.RequiredArgsConstructor;
@@ -28,18 +25,23 @@ public class FeedController {
     }
 
     @GetMapping("/feeds/{feedId}")
-    public ResponseEntity<?> getFeed(@PathVariable Long feedId, @AuthenticationPrincipal CustomOAuth2User customOAuth2User){
+    public ResponseEntity<?> getFeedDetail(@PathVariable Long feedId, @AuthenticationPrincipal CustomOAuth2User customOAuth2User){
         Long userId = customOAuth2User.getId();
         FeedDetailResponse feedDetailResponse = feedService.getFeed(userId, feedId);
         return ResponseEntity.ok(new StandardResponse<>(true, 0, "ok",feedDetailResponse));
     }
     @GetMapping("/feeds")
-    public ResponseEntity<?> getFeed(@RequestParam(required = false) Long cursor, @RequestParam(defaultValue = "10") int limit, @AuthenticationPrincipal CustomOAuth2User customOAuth2User){
+    public ResponseEntity<?> getFeedPagination(@RequestParam(required = false) Long cursor, @RequestParam(defaultValue = "10") int limit, @AuthenticationPrincipal CustomOAuth2User customOAuth2User){
         Long userId = customOAuth2User.getId();
         FeedPageItemResponse feedPageItemResponse = feedService.getFeedPreviews(userId, cursor, limit);
         return ResponseEntity.ok(new StandardResponse<>(true, 0, "ok",feedPageItemResponse));
     }
-
+    @GetMapping("/rankingfeeds")
+    public ResponseEntity<?> getFeedRankingPagination(@RequestParam(required = false) String cursor, @RequestParam(defaultValue = "10") int limit, @AuthenticationPrincipal CustomOAuth2User customOAuth2User){
+        Long userId = customOAuth2User.getId();
+        FeedRankingPageItemResponse feedRankingPageItemResponse = feedService.getRankingFeedPreviews(userId, cursor, limit);
+        return ResponseEntity.ok(new StandardResponse<>(true, 0, "ok",feedRankingPageItemResponse));
+    }
     @PutMapping("/feeds/{feedId}")
     public ResponseEntity<?> updateFeed(@PathVariable Long feedId, @RequestBody FeedRequest feedRequest, @AuthenticationPrincipal CustomOAuth2User customOAuth2User){
         Long userId = customOAuth2User.getId();
