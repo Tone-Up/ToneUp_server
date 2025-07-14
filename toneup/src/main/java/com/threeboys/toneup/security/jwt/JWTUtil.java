@@ -79,7 +79,7 @@ public class JWTUtil {
 //                .signWith(secretKey)
 //                .compact();
     }
-    public void validateToken(String token) throws JwtException {
+    public void validateToken(String token) throws ExpiredJwtException{
             // 토큰 파싱 및 서명 검증
             Jwts.parser()
                     .verifyWith(secretKey) // 비밀키 설정 (SecretKey 객체)
