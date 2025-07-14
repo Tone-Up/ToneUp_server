@@ -18,6 +18,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class FeedService {
     private final FeedRepository feedRepository;
     private final UserRepository userRepository;
