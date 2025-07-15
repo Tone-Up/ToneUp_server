@@ -69,7 +69,7 @@ public class JWTUtil {
                 .expiration(new Date(System.currentTimeMillis() + expiredMs*1000))
                 .signWith(secretKey)
                 .compact();
-        RefreshToken token = new RefreshToken(userId, refreshToken, expiredMs / 1000);
+        RefreshToken token = new RefreshToken(userId, refreshToken, expiredMs);
         tokenRepository.save(token);
         return refreshToken;
 //        return Jwts.builder()
@@ -79,7 +79,7 @@ public class JWTUtil {
 //                .signWith(secretKey)
 //                .compact();
     }
-    public void validateToken(String token) throws JwtException {
+    public void validateToken(String token) throws ExpiredJwtException{
             // 토큰 파싱 및 서명 검증
             Jwts.parser()
                     .verifyWith(secretKey) // 비밀키 설정 (SecretKey 객체)

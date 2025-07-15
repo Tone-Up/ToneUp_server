@@ -37,7 +37,7 @@ public class FeedController {
         return ResponseEntity.ok(new StandardResponse<>(true, 0, "ok",feedPageItemResponse));
     }
     @GetMapping("/rankingfeeds")
-    public ResponseEntity<?> getFeedRankingPagination(@RequestParam(required = false) String cursor, @RequestParam(defaultValue = "10") int limit, @AuthenticationPrincipal CustomOAuth2User customOAuth2User){
+    public ResponseEntity<?> getFeedRankingPagination(@RequestParam(required = false) Long cursor, @RequestParam(defaultValue = "10") int limit, @AuthenticationPrincipal CustomOAuth2User customOAuth2User){
         Long userId = customOAuth2User.getId();
         FeedRankingPageItemResponse feedRankingPageItemResponse = feedService.getRankingFeedPreviews(userId, cursor, limit);
         return ResponseEntity.ok(new StandardResponse<>(true, 0, "ok",feedRankingPageItemResponse));

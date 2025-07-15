@@ -1,5 +1,8 @@
 package com.threeboys.toneup.security.jwt;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.threeboys.toneup.common.response.ErrorResponse;
+import com.threeboys.toneup.common.response.exception.ErrorMessages;
 import com.threeboys.toneup.security.CustomOAuth2User;
 import com.threeboys.toneup.user.dto.UserDTO;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -62,9 +65,18 @@ public class JWTFilter extends OncePerRequestFilter {
                 throw e;
             } catch (ExpiredJwtException e) {
                 SecurityContextHolder.clearContext();
-                // 토큰 만료됨
                 log.error("Expired JWT token");
-                throw e;
+
+                HttpServletResponse httpResponse = (HttpServletResponse) response;
+                httpResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                httpResponse.setContentType("application/json;charset=UTF-8");
+                httpResponse.getWriter().write(
+                        new ObjectMapper().writeValueAsString(
+                                new ErrorResponse<>(
+                                        401, "TOKEN_EXPIRED", ErrorMessages.TOKEN_EXPIRED)
+                                )
+                );
+                return;
             } catch (UnsupportedJwtException e) {
                 SecurityContextHolder.clearContext();
                 // 지원하지 않는 JWT일 때

@@ -13,6 +13,6 @@ public interface CustomFeedRepository {
 
     FeedPageItemResponse findFeedPreviewsWithImageAndIsLiked(Long userId, Long cursor, int pageSize);
 
-    FeedRankingPageItemResponse findRankingFeedPreviewsWithImageAndIsLiked(Long userId, String cursor, int limit);
+    FeedRankingPageItemResponse findRankingFeedPreviewsWithImageAndIsLiked(Long userId, Long cursor, int limit);
 
 }
