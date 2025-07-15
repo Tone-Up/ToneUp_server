@@ -21,7 +21,7 @@ import java.util.List;
 public class CustomFeedRepositoryImpl implements CustomFeedRepository {
 
     private final JPAQueryFactory jpaQueryFactory;
-
+    private static Long CUSTOM_CURSOR = 10000000L;
     public CustomFeedRepositoryImpl(JPAQueryFactory jpaQueryFactory) {
         this.jpaQueryFactory = jpaQueryFactory;
     }
@@ -96,23 +96,22 @@ public class CustomFeedRepositoryImpl implements CustomFeedRepository {
                 .limit(limit)
                 .fetch();
         boolean hasNext = feedPreviewResponseList.size() > limit;
-        Long nextCursor = feedPreviewResponseList.getLast().getFeedId();
+        Long nextCursor = (feedPreviewResponseList.getLast() == null ) ? null : feedPreviewResponseList.getLast().getFeedId();
 
         return new FeedPageItemResponse(feedPreviewResponseList, nextCursor, hasNext) ;
     }
 
 
-    public FeedRankingPageItemResponse findRankingFeedPreviewsWithImageAndIsLiked(Long userId, String cursor,  int limit){
+    public FeedRankingPageItemResponse findRankingFeedPreviewsWithImageAndIsLiked(Long userId, Long cursor,  int limit){
         QFeed feed = QFeed.feed;
         QImages image = QImages.images;
         QFeedsLike like = QFeedsLike.feedsLike;
         Integer cursorLikeCount =null;
         Long cursorId = null;
 
-        if(cursor != null && !cursor.isBlank()){
-            String[] cursorList = cursor.split("_");
-            cursorLikeCount = Integer.parseInt(cursorList[0]);
-            cursorId = Long.parseLong(cursorList[1]);
+        if(cursor != null){
+            cursorLikeCount = Math.toIntExact(cursor / CUSTOM_CURSOR);
+            cursorId = cursor%CUSTOM_CURSOR;
         }
 
         BooleanBuilder cursorCondition = new BooleanBuilder();

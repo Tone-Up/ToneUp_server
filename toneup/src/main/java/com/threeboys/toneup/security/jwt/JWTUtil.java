@@ -69,7 +69,7 @@ public class JWTUtil {
                 .expiration(new Date(System.currentTimeMillis() + expiredMs*1000))
                 .signWith(secretKey)
                 .compact();
-        RefreshToken token = new RefreshToken(userId, refreshToken, expiredMs / 1000);
+        RefreshToken token = new RefreshToken(userId, refreshToken, expiredMs);
         tokenRepository.save(token);
         return refreshToken;
 //        return Jwts.builder()

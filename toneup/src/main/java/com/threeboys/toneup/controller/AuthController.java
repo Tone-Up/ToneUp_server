@@ -53,11 +53,14 @@ public class AuthController {
     @PostMapping("/auth/refresh")
     public ResponseEntity<?> getRefresh(@RequestBody RefreshRequest request, @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
         Long userId = oAuth2User.getId();
+        String nickname = oAuth2User.getNickname();
+        String personalColor = oAuth2User.getPersonalColor();
+        String role = oAuth2User.getRole();
         RefreshToken redisRefreshToken = tokenRepository.findById(userId).orElseThrow(()-> new UserNotFoundException(userId));
         if (!request.getRefreshToken().equals(redisRefreshToken.getRefreshToken())) {
             throw new InvalidRefreshTokenException(); // 예외 던짐
         }
-        String accessToken = jwtProvider.createRefreshJwt(userId, JwtConstants.ACCESS_TOKEN_EXPIRATION);
+        String accessToken = jwtProvider.createJwt(userId, nickname, personalColor, role, JwtConstants.ACCESS_TOKEN_EXPIRATION);
         String refreshToken = jwtProvider.createRefreshJwt(userId, JwtConstants.REFRESH_TOKEN_EXPIRATION);
         RefreshTokenResponse refreshTokenResponse = new RefreshTokenResponse(accessToken, refreshToken);
 
