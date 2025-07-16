@@ -69,7 +69,7 @@ public class JWTUtil {
                 .expiration(new Date(System.currentTimeMillis() + expiredMs*1000))
                 .signWith(secretKey)
                 .compact();
-        RefreshToken token = new RefreshToken(userId, refreshToken, expiredMs / 1000);
+        RefreshToken token = new RefreshToken(userId, refreshToken, expiredMs);
         tokenRepository.save(token);
         return refreshToken;
 //        return Jwts.builder()
@@ -85,5 +85,9 @@ public class JWTUtil {
                     .verifyWith(secretKey) // 비밀키 설정 (SecretKey 객체)
                     .build()
                     .parseClaimsJws(token);
+    }
+
+    public Long getRefreshUserId(String requestRefreshToken) {
+        return Long.parseLong(Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(requestRefreshToken).getPayload().getSubject());
     }
 }

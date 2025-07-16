@@ -15,4 +15,6 @@ public class ErrorMessages {
     public static final String INVALID_TITLE_LENGTH = "제목은 1자 이상 100자 이하여야 합니다.";
     public static final String DIARY_NOT_FOUND = "존재하지 않는 다이어리입니다.";
     public static final String TOKEN_EXPIRED = "토큰이 만료되었습니다.";
+    public static final String INVALID_NICKNAME_FORMAT = "닉네임은 2~20자 이내, 특수문자 없이 입력해주세요.";
+    public static final String NICKNAME_ALREADY_EXISTS = "이미 사용 중인 닉네임입니다.";
 }

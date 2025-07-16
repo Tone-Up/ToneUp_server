@@ -15,7 +15,7 @@ public class User {
     private static final int MIN_NICKNAME_LENGTH = 2;
     private static final int MAX_NICKNAME_LENGTH = 20;
     private static final String NICKNAME_INVALID_LENGTH_MESSAGE = "닉네임은 2자 이상 20자 이하여야 합니다.";
-    private static final String NICKNAME_REGEX="^[a-zA-Z0-9]+$";
+    private static final String NICKNAME_REGEX="^[a-zA-Z0-9가-힣]+$";
     private static final String INVALID_CHAR_MESSAGE = "닉네임은 영문자와 숫자만 사용할 수 있습니다.";
     private static final String NICKNAME_NULL_MESSAGE = "닉네임은 null일 수 없습니다.";
     private static final String INVALID_PROFILE_IMAGE_MESSAGE= "프로필 이미지 URL은 null이나 빈 값일 수 없습니다.";
@@ -87,7 +87,7 @@ public class User {
     }
 
     public static User fromEntity(UserEntity entity) {
-        return new User(entity.getName(),  entity.getEmail(), entity.getRole(), entity.getNickname(),entity.getPersonalColor().getPersonalColorType().toString(),entity.getBio(),entity.getProfileImageId().getUrl());
+        return new User(entity.getName(),  entity.getEmail(), entity.getRole(), entity.getNickname(),entity.getPersonalColor().getPersonalColorType().toString(),entity.getBio(),entity.getProfileImageId().getS3Key());
     }
 
 //    public UserEntity toEntity() {

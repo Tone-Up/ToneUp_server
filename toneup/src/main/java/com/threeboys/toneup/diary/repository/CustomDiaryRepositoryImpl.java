@@ -59,7 +59,7 @@ public class CustomDiaryRepositoryImpl implements CustomDiaryRepository{
     }
 
     @Override
-    public DiaryPageItemResponse findDiaryPreviewsWithImage(Long userId, Long cursor, int limit) {
+    public DiaryPageItemResponse findDiaryPreviewsWithImage(Long userId, Long cursor, boolean isMine, int limit) {
         QDiary d = QDiary.diary;
         QImages i = QImages.images;
 
@@ -74,7 +74,8 @@ public class CustomDiaryRepositoryImpl implements CustomDiaryRepository{
                         .and(i.type.eq(ImageType.DIARY))
                         .and(i.ImageOrder.eq(0)))
                 .where(
-                        cursor == null ? null : d.id.lt(cursor)
+                        cursor == null ? null : d.id.lt(cursor),
+                        (isMine? d.userId.id.eq(userId) : null)
                 )
                 .orderBy(d.id.desc())
                 .limit(limit)

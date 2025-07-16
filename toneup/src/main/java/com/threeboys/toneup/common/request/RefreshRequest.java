@@ -6,4 +6,5 @@ import lombok.Getter;
 public class RefreshRequest {
     String accessToken;
     String refreshToken;
+    String fcmToken;
 }
