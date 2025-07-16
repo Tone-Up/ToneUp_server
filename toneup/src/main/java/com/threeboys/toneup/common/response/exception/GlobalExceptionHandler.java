@@ -11,6 +11,8 @@ import com.threeboys.toneup.feed.exception.FeedNotFoundException;
 import com.threeboys.toneup.feed.exception.InvalidContentLengthException;
 import com.threeboys.toneup.feed.exception.InvalidImageCountException;
 import com.threeboys.toneup.security.exception.InvalidRefreshTokenException;
+import com.threeboys.toneup.user.exception.DuplicateNicknameException;
+import com.threeboys.toneup.user.exception.InvalidNicknameException;
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -56,7 +58,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(InvalidTitleLengthException.class)
-    public ResponseEntity<ErrorResponse<Object>> handleFeedAndDiaryException(InvalidTitleLengthException ex) {
+    public ResponseEntity<ErrorResponse<Object>> handleDiaryException(InvalidTitleLengthException ex) {
         log.error(ex.getMessage());
         ErrorResponse<Object> body = new ErrorResponse<>(
                 //추후 ErrorCode(enum 타입)으로 관리 필요
@@ -111,6 +113,27 @@ public class GlobalExceptionHandler {
         );
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
     }
+
+    @ExceptionHandler(InvalidNicknameException.class)
+    public ResponseEntity<ErrorResponse<Object>> handleProfileException(InvalidNicknameException ex) {
+        log.error(ex.getMessage());
+        ErrorResponse<Object> body = new ErrorResponse<>(
+                //추후 ErrorCode(enum 타입)으로 관리 필요
+                400, "INVALID_NICKNAME_FORMAT", ErrorMessages.INVALID_NICKNAME_FORMAT
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    }
+    @ExceptionHandler(DuplicateNicknameException.class)
+    public ResponseEntity<ErrorResponse<Object>> handleProfileException(DuplicateNicknameException ex) {
+        log.error(ex.getMessage());
+        ErrorResponse<Object> body = new ErrorResponse<>(
+                //추후 ErrorCode(enum 타입)으로 관리 필요
+                400, "NICKNAME_ALREADY_EXISTS", ErrorMessages.NICKNAME_ALREADY_EXISTS
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    }
+
+
 
 
 }

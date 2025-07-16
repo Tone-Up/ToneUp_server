@@ -10,6 +10,7 @@ import com.threeboys.toneup.user.domain.User;
 import com.threeboys.toneup.user.dto.ProfileResponse;
 import com.threeboys.toneup.user.dto.UpdateProfileRequest;
 import com.threeboys.toneup.user.entity.UserEntity;
+import com.threeboys.toneup.user.exception.DuplicateNicknameException;
 import com.threeboys.toneup.user.exception.UserNotFoundException;
 import com.threeboys.toneup.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -71,10 +72,18 @@ public class Userservice {
         UserEntity userEntity = userRepository.findById(userId).orElseThrow(()->new UserNotFoundException(userId));
         User user = userEntity.toDomain();
         System.out.println(userEntity.getProfileImageId());
+
         Long profileId = userEntity.getProfileImageId().getId();
         String s3Key = userEntity.getProfileImageId().getS3Key();
         //Mapper로 변경 고려 필요? or changeProfile 안에 넣기?
-        if(updateProfileRequest.getNickname()!=null) user.changNickname(updateProfileRequest.getNickname());
+        if(updateProfileRequest.getNickname()!=null&&!updateProfileRequest.getNickname().equals(user.getNickname())) {
+            // 중복 닉네임 아닌 경우에 닉네임 검증(길이 및 특수문자) 후 변경
+            userRepository.findByNickname(updateProfileRequest.getNickname())
+                    .ifPresent(userEntity1 -> {
+                        throw new DuplicateNicknameException();
+                    });
+            user.changNickname(updateProfileRequest.getNickname());
+        }
         if(updateProfileRequest.getBio()!=null) user.changeBio(updateProfileRequest.getBio());
         if(updateProfileRequest.getProfileImageUrl()!=null) user.changeProfileImage(updateProfileRequest.getProfileImageUrl());
 
