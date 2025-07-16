@@ -71,9 +71,9 @@ public class DiaryService {
         return DiaryDetailResponse.from(diaryDetailDtoList.getFirst(), profileImageUrl,imageUrls);
     }
     @Transactional
-    public DiaryPageItemResponse getDiaryPreviews(Long userId , Long cursor, int limit) {
+    public DiaryPageItemResponse getDiaryPreviews(Long userId , Long cursor, boolean isMine, int limit) {
         //다중 조인으로 전체 조회(프로필, 피드 ,이미지들, 좋아요여부)
-        DiaryPageItemResponse diaryPageItemResponse = diaryRepository.findDiaryPreviewsWithImage( userId, cursor, limit);
+        DiaryPageItemResponse diaryPageItemResponse = diaryRepository.findDiaryPreviewsWithImage( userId, cursor, isMine, limit);
         // 이미지 s3Key로 s3 조회해서 url 획득 + 프로필 이미지도 획득
         diaryPageItemResponse.getDiaries().forEach(feedPreviewResponse -> {
             feedPreviewResponse.setImageUrl(fileService.getPreSignedUrl(feedPreviewResponse.getImageUrl()));
