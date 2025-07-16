@@ -86,4 +86,8 @@ public class JWTUtil {
                     .build()
                     .parseClaimsJws(token);
     }
+
+    public Long getRefreshUserId(String requestRefreshToken) {
+        return Long.parseLong(Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(requestRefreshToken).getPayload().getSubject());
+    }
 }
