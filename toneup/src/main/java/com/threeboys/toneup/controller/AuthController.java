@@ -29,6 +29,9 @@ public class AuthController {
 
     private final OAuthLoginServiceFactory loginServiceFactory;
     private final TokenRepository tokenRepository;
+    private final UserRepository userRepository;
+    private final JWTUtil jwtProvider;
+
 
     @PostMapping("/app/authorization")
     public ResponseEntity<?> loginWithGoogle(@RequestBody OAuth2LoginRequest request) {
@@ -38,9 +41,6 @@ public class AuthController {
         return ResponseEntity.ok(new StandardResponse<>(true, 0, "Ok", oAuthLoginResponseDTO));
 
     }
-    // Dev 전용 엔드포인트 (실서비스 배포 시 삭제)
-    private final UserRepository userRepository;
-    private final JWTUtil jwtProvider;
 
     @PostMapping("/app/dev/auth-token")
     public String getTestToken() {
@@ -51,12 +51,20 @@ public class AuthController {
 
 
     @PostMapping("/auth/refresh")
-    public ResponseEntity<?> getRefresh(@RequestBody RefreshRequest request, @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
-        Long userId = oAuth2User.getId();
-        String nickname = oAuth2User.getNickname();
-        String personalColor = oAuth2User.getPersonalColor();
-        String role = oAuth2User.getRole();
+    public ResponseEntity<?> getRefresh(@RequestBody RefreshRequest request) {
+        String requestRefreshToken  = request.getRefreshToken();
+
+
+
+        jwtProvider.validateToken(requestRefreshToken);
+        Long userId = jwtProvider.getRefreshUserId(requestRefreshToken);
+        UserEntity user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+        String nickname = user.getNickname();
+        String personalColor = user.getPersonalColor().toString();
+        String role = user.getRole();
+        //EXPIRED_REFRESH_TOKEN 로 예외 처리 변경 필요
         RefreshToken redisRefreshToken = tokenRepository.findById(userId).orElseThrow(()-> new UserNotFoundException(userId));
+
         if (!request.getRefreshToken().equals(redisRefreshToken.getRefreshToken())) {
             throw new InvalidRefreshTokenException(); // 예외 던짐
         }

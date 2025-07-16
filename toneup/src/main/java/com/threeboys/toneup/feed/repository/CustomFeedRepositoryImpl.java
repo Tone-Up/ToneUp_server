@@ -56,7 +56,8 @@ public class CustomFeedRepositoryImpl implements CustomFeedRepository {
                         pi.s3Key,
                         fi.s3Key,
                         totalLikes.id.count().intValue(),
-                        l.id.isNotNull()
+                        l.id.isNotNull(),
+                        f.userId.id.eq(userId)
                 )).from(f)
                 .join(f.userId, u)
                 .leftJoin(u.profileImageId, pi)
@@ -71,7 +72,7 @@ public class CustomFeedRepositoryImpl implements CustomFeedRepository {
                 .orderBy(fi.ImageOrder.asc())
                 .fetch();
     }
-    public FeedPageItemResponse findFeedPreviewsWithImageAndIsLiked(Long userId, Long cursor, int limit){
+    public FeedPageItemResponse findFeedPreviewsWithImageAndIsLiked(Long userId, Long cursor, boolean isMine, int limit){
         QFeed feed = QFeed.feed;
         QImages image = QImages.images;
         QFeedsLike like = QFeedsLike.feedsLike;
@@ -90,7 +91,8 @@ public class CustomFeedRepositoryImpl implements CustomFeedRepository {
                 .on(like.feed.id.eq(feed.id)
                         .and(like.user.id.eq(userId)))
                 .where(
-                        cursor == null ? null : feed.id.lt(cursor)
+                        cursor == null ? null : feed.id.lt(cursor),
+                        (isMine ? feed.userId.id.eq(userId) : null)
                 )
                 .orderBy(feed.id.desc())
                 .limit(limit)
@@ -144,7 +146,7 @@ public class CustomFeedRepositoryImpl implements CustomFeedRepository {
         Long nextCursorId = (feedPreviewResponseList.getLast()==null) ? null : feedPreviewResponseList.getLast().getFeedId();
         List<Integer> nextCursorCount = (nextCursorId==null) ? null : jpaQueryFactory.select(feed.likeCount).from(feed).where(feed.id.eq(nextCursorId)).fetch();
 
-        String nextCursor = (nextCursorId==null) ? null : nextCursorCount.getFirst()+"_"+ nextCursorId;
+        Long nextCursor = (nextCursorId==null) ? null : nextCursorCount.getFirst()*CUSTOM_CURSOR + nextCursorId;
 
         return new FeedRankingPageItemResponse(feedPreviewResponseList, nextCursor, hasNext) ;
     }

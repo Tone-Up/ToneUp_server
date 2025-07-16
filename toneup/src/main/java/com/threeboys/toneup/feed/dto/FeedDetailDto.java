@@ -14,9 +14,10 @@ public class FeedDetailDto {
     private String feedImageS3Key;
     private int likeCount;
     private boolean isLiked;
+    private boolean isMine;
 
     @QueryProjection
-    public FeedDetailDto(Long feedId, String content, Long userId, String nickname, String profileS3Key, String feedImageS3Key,int likeCount, boolean isLiked) {
+    public FeedDetailDto(Long feedId, String content, Long userId, String nickname, String profileS3Key, String feedImageS3Key,int likeCount, boolean isLiked,  boolean isMine) {
         this.feedId = feedId;
         this.content = content;
         this.userId = userId;
@@ -25,5 +26,6 @@ public class FeedDetailDto {
         this.feedImageS3Key = feedImageS3Key;
         this.likeCount = likeCount;
         this.isLiked = isLiked;
+        this.isMine = isMine;
     }
 }

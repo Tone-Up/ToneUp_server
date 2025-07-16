@@ -8,6 +8,6 @@ import java.util.List;
 @Data
 public class FeedRankingPageItemResponse{
     private List<FeedPreviewResponse> feeds;
-    private String nextCursor;
+    private Long nextCursor;
     private boolean hasNext;
 }
