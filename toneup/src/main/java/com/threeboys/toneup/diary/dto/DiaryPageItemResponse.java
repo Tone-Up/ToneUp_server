@@ -11,4 +11,5 @@ public class DiaryPageItemResponse {
     private List<DiaryPreviewResponse> diaries;
     private Long nextCursor;
     private boolean hasNext;
+    private Long totalCount;
 }

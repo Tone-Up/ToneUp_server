@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
@@ -59,7 +60,7 @@ public class CustomDiaryRepositoryImpl implements CustomDiaryRepository{
     }
 
     @Override
-    public DiaryPageItemResponse findDiaryPreviewsWithImage(Long userId, Long cursor, boolean isMine, int limit) {
+    public DiaryPageItemResponse findDiaryPreviewsWithImage(Long userId, Long cursor, int limit) {
         QDiary d = QDiary.diary;
         QImages i = QImages.images;
 
@@ -74,16 +75,22 @@ public class CustomDiaryRepositoryImpl implements CustomDiaryRepository{
                         .and(i.type.eq(ImageType.DIARY))
                         .and(i.ImageOrder.eq(0)))
                 .where(
-                        cursor == null ? null : d.id.lt(cursor),
-                        (isMine? d.userId.id.eq(userId) : null)
+                        cursor == null ? null : d.id.lt(cursor)
+//                        ,(isMine? d.userId.id.eq(userId) : null)
                 )
                 .orderBy(d.id.desc())
                 .limit(limit)
                 .fetch();
         boolean hasNext = diaryPreviewResponseList.size() > limit;
         Long nextCursor = diaryPreviewResponseList.getLast().getDiaryId();
-
-        return new DiaryPageItemResponse(diaryPreviewResponseList, nextCursor, hasNext) ;
+        Long totalCount = Optional.ofNullable(
+                jpaQueryFactory
+                        .select(d.count())
+                        .from(d)
+                        .where(d.userId.id.eq(userId))
+                        .fetchOne()
+        ).orElse(0L);
+        return new DiaryPageItemResponse(diaryPreviewResponseList, nextCursor, hasNext, totalCount);
     }
 
 
