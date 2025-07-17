@@ -16,6 +16,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public class CustomFeedRepositoryImpl implements CustomFeedRepository {
@@ -99,8 +100,15 @@ public class CustomFeedRepositoryImpl implements CustomFeedRepository {
                 .fetch();
         boolean hasNext = feedPreviewResponseList.size() > limit;
         Long nextCursor = (feedPreviewResponseList.getLast() == null ) ? null : feedPreviewResponseList.getLast().getFeedId();
-
-        return new FeedPageItemResponse(feedPreviewResponseList, nextCursor, hasNext) ;
+        Long totalCount = null;
+        if(isMine) totalCount = Optional.ofNullable(
+                jpaQueryFactory
+                        .select(feed.count())
+                        .from(feed)
+                        .where(feed.userId.id.eq(userId))
+                        .fetchOne()
+        ).orElse(0L);
+        return new FeedPageItemResponse(feedPreviewResponseList, nextCursor, hasNext, totalCount) ;
     }
 
 
