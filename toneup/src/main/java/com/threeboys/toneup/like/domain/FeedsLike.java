@@ -1,4 +1,4 @@
-package com.threeboys.toneup.feedLike.domain;
+package com.threeboys.toneup.like.domain;
 
 import com.threeboys.toneup.feed.domain.Feed;
 import com.threeboys.toneup.user.entity.UserEntity;
