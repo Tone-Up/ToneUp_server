@@ -1,20 +1,15 @@
 package com.threeboys.toneup.feed.repository;
 
 import com.querydsl.core.BooleanBuilder;
-import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.threeboys.toneup.common.domain.ImageType;
 import com.threeboys.toneup.common.domain.QImages;
 import com.threeboys.toneup.feed.domain.QFeed;
 import com.threeboys.toneup.feed.dto.*;
-import com.threeboys.toneup.feedLike.domain.QFeedsLike;
+import com.threeboys.toneup.like.domain.QFeedsLike;
 import com.threeboys.toneup.user.entity.QUserEntity;
-import jakarta.persistence.EntityManager;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
