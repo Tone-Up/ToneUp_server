@@ -82,4 +82,12 @@ public class Feed {
             throw new FORBIDDENException();
         }
     }
+
+    public void decreaseLikeCount() {
+        this.likeCount -=1;
+    }
+
+    public void increaseLikeCount() {
+        this.likeCount +=1;
+    }
 }
