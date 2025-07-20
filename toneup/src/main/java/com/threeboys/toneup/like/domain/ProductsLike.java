@@ -5,6 +5,7 @@ import com.threeboys.toneup.product.domain.Product;
 import com.threeboys.toneup.user.entity.UserEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.NoArgsConstructor;
 
 @Entity
@@ -22,4 +23,10 @@ public class ProductsLike {
     @ManyToOne(fetch = FetchType.LAZY,optional = false)
     @JoinColumn(name = "user_id")
     private UserEntity user;
+
+    @Builder
+    public ProductsLike(Product product, UserEntity user) {
+        this.product = product;
+        this.user = user;
+    }
 }
