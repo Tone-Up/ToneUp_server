@@ -42,6 +42,7 @@ public class Feed {
         validateContent(content);
         this.userId = user;
         this.content = content;
+        this.likeCount = 0;
     }
 
     public void attachImages(List<String> imageUrls){
