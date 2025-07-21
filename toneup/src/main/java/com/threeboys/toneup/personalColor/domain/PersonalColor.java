@@ -15,7 +15,7 @@ public class PersonalColor {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(name = "type")
+    @Column(name = "type", unique = true)
     @Enumerated(EnumType.STRING)
     private PersonalColorType personalColorType;
 

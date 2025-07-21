@@ -2,7 +2,6 @@ package com.threeboys.toneup.user.service;
 
 import com.threeboys.toneup.common.domain.Images;
 import com.threeboys.toneup.common.service.FileService;
-import com.threeboys.toneup.feed.domain.Feed;
 import com.threeboys.toneup.personalColor.domain.PersonalColor;
 import com.threeboys.toneup.personalColor.domain.PersonalColorType;
 import com.threeboys.toneup.security.provider.ProviderType;
@@ -10,16 +9,13 @@ import com.threeboys.toneup.user.domain.User;
 import com.threeboys.toneup.user.dto.ProfileResponse;
 import com.threeboys.toneup.user.dto.UpdateProfileRequest;
 import com.threeboys.toneup.user.entity.UserEntity;
-import com.threeboys.toneup.user.exception.UserNotFoundException;
 import com.threeboys.toneup.user.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Optional;
 
@@ -47,7 +43,7 @@ public class UserServiceTest {
                 .s3Key("some-s3-key")
                 .build();
         UserEntity userEntity = new UserEntity("김준영", "Jjun", ProviderType.GOOGLE, "test1234", "test1234@test.com",images);
-        userEntity.updatePersonalColor(PersonalColor.builder().personalColorType(PersonalColorType.ATUMN).build());
+        userEntity.updatePersonalColor(PersonalColor.builder().personalColorType(PersonalColorType.AUTUMN).build());
         Long userId = 1L;
         String profileImageUrl = "http://test";
 
