@@ -6,6 +6,8 @@ import com.threeboys.toneup.feed.repository.FeedRepository;
 import com.threeboys.toneup.like.annotation.DistributedLock;
 import com.threeboys.toneup.like.domain.FeedsLike;
 import com.threeboys.toneup.like.domain.ProductsLike;
+import com.threeboys.toneup.like.dto.FeedLikeResponse;
+import com.threeboys.toneup.like.dto.ProductLikeResponse;
 import com.threeboys.toneup.like.repository.FeedsLikeRepository;
 import com.threeboys.toneup.like.repository.ProductsLikeRepository;
 import com.threeboys.toneup.product.domain.Product;
@@ -94,8 +96,8 @@ public class LikeService {
     }
     //aop 적용
 //    @Transactional
-    @DistributedLock(key = "FEED"+"_"+"#feedId")
-    public void feedToggleLike(Long feedId, Long userId){
+    @DistributedLock(key = "'FEED_'+ #feedId")
+    public FeedLikeResponse feedToggleLike(Long feedId, Long userId){
             boolean isLiked = feedsLikeRepository.existsByFeedIdAndUserId(feedId, userId);
             //좋아요 테이블에 존재하면 삭제 후 피드 테이블 likeCount - 1
             Feed feed = feedRepository.findById(feedId).orElseThrow(FeedNotFoundException::new);
@@ -112,12 +114,13 @@ public class LikeService {
                 feedsLikeRepository.save(feedsLike);
                 feed.increaseLikeCount();
             }
+            return new FeedLikeResponse(feedId, !isLiked);
 
     }
 //    @Transactional
     //굳이 분산락 필요한가 동일 유저가 동시 요청을 하는 경우가 많지 않을꺼 같은데 낙관락 적용해도 되지 않나
     @DistributedLock(key = "'PRODUCT_' + #productId + '_' + #userId")
-    public void productToggleLike(Long productId, Long userId){
+    public ProductLikeResponse productToggleLike(Long productId, Long userId){
         boolean isLiked = productsLikeRepository.existsByProductIdAndUserId(productId, userId);
 
         Product product = productRepository.findById(productId).orElseThrow(ProductNotFoundException::new);
@@ -133,7 +136,7 @@ public class LikeService {
                     .build();
             productsLikeRepository.save(productsLike);
         }
-
+        return new ProductLikeResponse(productId, !isLiked);
     }
 
 }
