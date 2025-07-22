@@ -12,4 +12,6 @@ public interface UserRepository extends JpaRepository<UserEntity,Long> {
     Optional<UserEntity> findByEmail(String mail);
     Optional<UserEntity> findByNickname(String nickname);
     Optional<UserEntity> findByProviderAndProviderId(ProviderType provider, String providerId);
+
+    void deleteAllByNameStartingWith(String likeTestUser);
 }

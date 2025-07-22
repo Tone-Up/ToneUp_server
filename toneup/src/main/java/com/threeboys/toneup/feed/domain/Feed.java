@@ -42,6 +42,7 @@ public class Feed {
         validateContent(content);
         this.userId = user;
         this.content = content;
+        this.likeCount = 0;
     }
 
     public void attachImages(List<String> imageUrls){
@@ -81,5 +82,13 @@ public class Feed {
         if (!this.userId.getId().equals(userId)) {
             throw new FORBIDDENException();
         }
+    }
+
+    public void decreaseLikeCount() {
+        this.likeCount -=1;
+    }
+
+    public void increaseLikeCount() {
+        this.likeCount +=1;
     }
 }
