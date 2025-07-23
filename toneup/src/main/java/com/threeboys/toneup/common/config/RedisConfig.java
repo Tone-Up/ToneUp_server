@@ -8,6 +8,7 @@ import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
+import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @Configuration
@@ -36,14 +37,14 @@ public class RedisConfig {
 
         // 일반적인 key:value의 경우 시리얼라이저
         redisTemplate.setKeySerializer(new StringRedisSerializer());
-        redisTemplate.setValueSerializer(new StringRedisSerializer());
+        redisTemplate.setValueSerializer(new GenericToStringSerializer<>(Object.class)); //new GenericJackson2JsonRedisSerializer()
 
         // Hash를 사용할 경우 시리얼라이저
         redisTemplate.setHashKeySerializer(new StringRedisSerializer());
         redisTemplate.setHashValueSerializer(new StringRedisSerializer());
 
         // 모든 경우
-        redisTemplate.setDefaultSerializer(new StringRedisSerializer());
+        redisTemplate.setDefaultSerializer(new GenericToStringSerializer<>(Object.class)); //new GenericJackson2JsonRedisSerializer()
 
         return redisTemplate;
     }
