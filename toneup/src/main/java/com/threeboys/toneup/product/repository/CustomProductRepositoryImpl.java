@@ -32,6 +32,8 @@ public class CustomProductRepositoryImpl implements CustomProductRepository{
         BooleanBuilder cursorCondition = new BooleanBuilder();
         if (!randomIdList.isEmpty()) {
             cursorCondition.or(product.id.in(randomIdList));
+        }else{
+            return new ProductPageItemResponse(null);
         }
 
         List<ProductPreviewResponse> productPreviewResponseList = jpaQueryFactory

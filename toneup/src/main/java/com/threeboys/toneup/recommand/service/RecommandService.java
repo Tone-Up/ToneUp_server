@@ -2,6 +2,7 @@ package com.threeboys.toneup.recommand.service;
 
 import com.threeboys.toneup.common.service.FileService;
 import com.threeboys.toneup.personalColor.domain.PersonalColorType;
+import com.threeboys.toneup.product.dto.ProductPreviewResponse;
 import com.threeboys.toneup.product.repository.ProductRepository;
 import com.threeboys.toneup.recommand.dto.ProductPageItemResponse;
 import com.threeboys.toneup.recommand.repository.ProductPersonalColorRepository;
@@ -25,7 +26,7 @@ public class RecommandService {
     private final FileService fileService;
     private final RedisTemplate<String, Object> redisTemplate;
     private final String REDIS_KEY = "recommend:product:personalColor:";
-
+    private final int REDIS_CACHING_SIZE = 500;
     //큰 문제점 퍼스널 컬러 재검사 후 퍼스널컬러 변경되어도 캐싱은 그대로여서 이전 퍼스널컬러에 대한 추천 상품이 조회됨(조건 넣어줘야할듯)
     public ProductPageItemResponse getProductItemPagination(Long userId, PersonalColorType personalColorType, Long cursor, int limit){
 //        SELECT * FROM productpersonalcolor join product on productpersonalcolor.product_id=product.id where productpersonalcolor.personalColor_id=1 order by rand(123) limit 10 offset 29000;
@@ -38,7 +39,8 @@ public class RecommandService {
         if(cursor==null||cursor >= totalSize){
 //            int seed =
             if(cursor==null) cursor = 0L;
-            List<Long> randomIdList = productPersonalColorRepository.findByRandomProductIdList(personalColorType.getCode(),limit*50 , cursor, userId);
+            System.out.println(cursor+": cursor CHECK!!!!!!!!!!!!!!!!!!!!!11");
+            List<Long> randomIdList = productPersonalColorRepository.findByRandomProductIdList(personalColorType.getCode(),REDIS_CACHING_SIZE , cursor, userId);
 //            List<Long> randomIdList = productPersonalColorRepository.findByPersonalColorIdAndUserId(personalColorType.getCode(), limit*50, cursor);
 //            Collections.shuffle(randomIdList);
             redisTemplate.delete(key);
@@ -50,8 +52,8 @@ public class RecommandService {
             page = redisTemplate.opsForList().range(key, 0, limit-1);
 
             //커서 초기화
-            cursor = 0L;
-            nextCursor = cursor+(long) limit;
+//            cursor = 0L;
+            nextCursor = (long) limit;
         }else{
             page = redisTemplate.opsForList().range(key, cursor, cursor+limit-1);
             nextCursor = cursor+limit;
@@ -76,13 +78,24 @@ public class RecommandService {
                 .collect(Collectors.toList());
 
         ProductPageItemResponse productPageItemResponse = productRepository.findProductWithImageAndIsLiked(userId,cursor, limit, productIdList);
-        productPageItemResponse.getProducts().stream().forEach(productPreviewResponse -> {
-            productPreviewResponse.setImageUrl(fileService.getPreSignedUrl(productPreviewResponse.getImageUrl()));
-        });
+        if(productPageItemResponse.getProducts()!=null){
+            productPageItemResponse.getProducts().stream().forEach(productPreviewResponse -> {
+
+                productPreviewResponse.setImageUrl(fileService.getPreSignedUrl(productPreviewResponse.getImageUrl()));
+            });
+        }
 
         hasNext = totalSize != null && totalSize > nextCursor;
-        productPageItemResponse.setNextCursor(nextCursor);
-        productPageItemResponse.setHasNext(hasNext);
+        if(productPageItemResponse.getProducts()!=null){
+            List<ProductPreviewResponse> feeds = new ArrayList<>();
+            productPageItemResponse.setProducts(feeds);
+            productPageItemResponse.setNextCursor(nextCursor);
+            productPageItemResponse.setHasNext(hasNext);
+        }else{
+            productPageItemResponse.setNextCursor(null);
+            productPageItemResponse.setHasNext(false);
+        }
+
         return productPageItemResponse;
 
     }
