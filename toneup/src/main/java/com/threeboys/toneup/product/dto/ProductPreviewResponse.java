@@ -3,8 +3,10 @@ package com.threeboys.toneup.product.dto;
 import com.querydsl.core.annotations.QueryProjection;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
 public class ProductPreviewResponse {
     private Long productId;
     private String productName;

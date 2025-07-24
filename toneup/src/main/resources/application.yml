@@ -36,5 +36,10 @@ logging:
     org:
       apache:
         coyote: DEBUG
+      hibernate:
+        type:
+          descriptor:
+            sql: TRACE
+        SQL: DEBUG
     root: info
 

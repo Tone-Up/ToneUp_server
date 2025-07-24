@@ -73,10 +73,10 @@ public class CustomDiaryRepositoryImpl implements CustomDiaryRepository{
 //                        ,(isMine? d.userId.id.eq(userId) : null)
                 )
                 .orderBy(d.id.desc())
-                .limit(limit)
+                .limit(limit+1)
                 .fetch();
         boolean hasNext = diaryPreviewResponseList.size() > limit;
-        Long nextCursor = diaryPreviewResponseList.getLast().getDiaryId();
+        Long nextCursor = (hasNext) ? diaryPreviewResponseList.get(limit-1).getDiaryId() : null;
         Long totalCount = Optional.ofNullable(
                 jpaQueryFactory
                         .select(d.count())
