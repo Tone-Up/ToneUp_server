@@ -91,10 +91,10 @@ public class CustomFeedRepositoryImpl implements CustomFeedRepository {
                         (isMine ? feed.userId.id.eq(userId) : null)
                 )
                 .orderBy(feed.id.desc())
-                .limit(limit)
+                .limit(limit+1)
                 .fetch();
-        boolean hasNext = feedPreviewResponseList.size() > limit;
-        Long nextCursor = (feedPreviewResponseList.getLast() == null ) ? null : feedPreviewResponseList.getLast().getFeedId();
+        boolean hasNext = feedPreviewResponseList.size()>limit;
+        Long nextCursor = (hasNext) ? feedPreviewResponseList.get(limit-1).getFeedId() : null;
         Long totalCount = null;
         if(isMine) totalCount = Optional.ofNullable(
                 jpaQueryFactory
@@ -103,7 +103,8 @@ public class CustomFeedRepositoryImpl implements CustomFeedRepository {
                         .where(feed.userId.id.eq(userId))
                         .fetchOne()
         ).orElse(0L);
-        return new FeedPageItemResponse(feedPreviewResponseList, nextCursor, hasNext, totalCount) ;
+        List<FeedPreviewResponse> feeds = (hasNext) ? feedPreviewResponseList.subList(0,feedPreviewResponseList.size()-1) : feedPreviewResponseList.subList(0,feedPreviewResponseList.size());
+        return new FeedPageItemResponse(feeds, nextCursor, hasNext, totalCount) ;
     }
 
 
@@ -142,15 +143,16 @@ public class CustomFeedRepositoryImpl implements CustomFeedRepository {
                         .and(like.user.id.eq(userId)))
                 .where(cursorCondition)
                 .orderBy(feed.likeCount.desc(), feed.id.desc())
-                .limit(limit)
+                .limit(limit+1)
                 .fetch();
         boolean hasNext = feedPreviewResponseList.size() > limit;
 
-        Long nextCursorId = (feedPreviewResponseList.getLast()==null) ? null : feedPreviewResponseList.getLast().getFeedId();
+        Long nextCursorId = (hasNext) ? feedPreviewResponseList.get(limit-1).getFeedId() : null;
         List<Integer> nextCursorCount = (nextCursorId==null) ? null : jpaQueryFactory.select(feed.likeCount).from(feed).where(feed.id.eq(nextCursorId)).fetch();
 
         Long nextCursor = (nextCursorId==null) ? null : nextCursorCount.getFirst()*CUSTOM_CURSOR + nextCursorId;
+        List<FeedPreviewResponse> feeds = (hasNext) ? feedPreviewResponseList.subList(0,feedPreviewResponseList.size()-1) : feedPreviewResponseList.subList(0,feedPreviewResponseList.size());
 
-        return new FeedRankingPageItemResponse(feedPreviewResponseList, nextCursor, hasNext) ;
+        return new FeedRankingPageItemResponse(feeds, nextCursor, hasNext) ;
     }
 }
