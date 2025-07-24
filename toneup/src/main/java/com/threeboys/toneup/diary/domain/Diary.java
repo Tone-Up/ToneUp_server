@@ -83,6 +83,7 @@ public class Diary {
         validatetitle(title);
         validateContent(content);
         validateImageCount(imageUrls);
+        this.title = title;
         this.content = content;
         attachImages(imageUrls);
     }

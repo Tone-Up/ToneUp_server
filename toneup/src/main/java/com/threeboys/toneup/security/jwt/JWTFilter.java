@@ -43,11 +43,13 @@ public class JWTFilter extends OncePerRequestFilter {
                 Long userId = jwtUtil.getUserId(token);
                 String role = jwtUtil.getRole(token);
                 String nickname = jwtUtil.getNickname(token);
-
+                String personalColor = jwtUtil.getPersonalColor(token);
                 //userDTO를 생성하여 값 set
                 UserDTO userDTO = new UserDTO();
                 userDTO.setId(userId);
                 userDTO.setRole(role);
+                userDTO.setPersonalColor(personalColor);
+                userDTO.setNickname(nickname);
 
                 //UserDetails에 회원 정보 객체 담기(일반 로그인은UserDetails, 소셜 로그인은 OAuth2User)
                 CustomOAuth2User customOAuth2User = new CustomOAuth2User(userDTO);
