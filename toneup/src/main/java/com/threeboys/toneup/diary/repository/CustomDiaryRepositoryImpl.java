@@ -70,7 +70,7 @@ public class CustomDiaryRepositoryImpl implements CustomDiaryRepository{
                         .and(i.ImageOrder.eq(0)))
                 .where(
                         cursor == null ? null : d.id.lt(cursor)
-//                        ,(isMine? d.userId.id.eq(userId) : null)
+                        ,d.userId.id.eq(userId)
                 )
                 .orderBy(d.id.desc())
                 .limit(limit+1)
