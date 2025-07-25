@@ -1,6 +1,8 @@
 package com.threeboys.toneup.like.service;
 
+import com.threeboys.toneup.common.service.FileService;
 import com.threeboys.toneup.feed.domain.Feed;
+import com.threeboys.toneup.feed.dto.FeedPageItemResponse;
 import com.threeboys.toneup.feed.exception.FeedNotFoundException;
 import com.threeboys.toneup.feed.repository.FeedRepository;
 import com.threeboys.toneup.like.annotation.DistributedLock;
@@ -13,6 +15,7 @@ import com.threeboys.toneup.like.repository.ProductsLikeRepository;
 import com.threeboys.toneup.product.domain.Product;
 import com.threeboys.toneup.product.exception.ProductNotFoundException;
 import com.threeboys.toneup.product.repository.ProductRepository;
+import com.threeboys.toneup.recommand.dto.ProductPageItemResponse;
 import com.threeboys.toneup.user.entity.UserEntity;
 import com.threeboys.toneup.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +41,7 @@ public class LikeService {
 
     private final RedissonClient redissonClient;
 
+    private final FileService fileService;
 
     @Transactional
     public void feedLike(Long feedId, Long userId){
@@ -137,6 +141,27 @@ public class LikeService {
             productsLikeRepository.save(productsLike);
         }
         return new ProductLikeResponse(productId, !isLiked);
+    }
+
+
+    public FeedPageItemResponse getLikeFeedPreviews(Long userId , Long cursor, boolean isMine, int limit) {
+        //다중 조인으로 전체 조회(프로필, 피드 ,이미지들, 좋아요여부)
+        FeedPageItemResponse feedPageItemResponse = feedRepository.findFeedPreviewsWithImageAndIsLiked( userId, cursor,isMine, limit, true);
+        // 이미지 s3Key로 s3 조회해서 url 획득 + 프로필 이미지도 획득
+        feedPageItemResponse.getFeeds().forEach(feedPreviewResponse -> {
+            feedPreviewResponse.setImageUrl(fileService.getPreSignedUrl(feedPreviewResponse.getImageUrl()));
+        });
+        return feedPageItemResponse;
+    }
+
+    public ProductPageItemResponse getLikeProductPreviews(Long userId , Long cursor, boolean isMine, int limit) {
+        //다중 조인으로 전체 조회(프로필, 피드 ,이미지들, 좋아요여부)
+        ProductPageItemResponse productPageItemResponse = productRepository.findProductWithImageAndIsLiked( userId, cursor, limit, null,true);
+        // 이미지 s3Key로 s3 조회해서 url 획득 + 프로필 이미지도 획득
+        productPageItemResponse.getProducts().forEach(feedPreviewResponse -> {
+            feedPreviewResponse.setImageUrl(fileService.getPreSignedUrl(feedPreviewResponse.getImageUrl()));
+        });
+        return productPageItemResponse;
     }
 
 }
