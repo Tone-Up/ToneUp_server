@@ -12,14 +12,14 @@ import java.util.List;
 @Repository
 public interface ProductPersonalColorRepository extends JpaRepository<ProductPersonalColor, Long> {
 
-    @Query(value = "select product.id from productpersonalcolor " +
-            "join product on  productpersonalcolor.product_id=product.id " +
-            "where productpersonalcolor.personalColor_id=:personalColorId " +
+    @Query(value = "select product.id from ProductPersonalColor " +
+            "join product on  ProductPersonalColor.product_id=product.id " +
+            "where ProductPersonalColor.personalColor_id=:personalColorId " +
             "order by rand(:seed) limit :limit offset :offset", nativeQuery = true)
     List<Long> findByRandomProductIdList(@Param("personalColorId")int personalColorId, @Param("limit")int limit, @Param("offset")Long offset, @Param("seed") Long seed);
 
 
-    @Query(value = "select product.id from productpersonalcolor join product on  productpersonalcolor.product_id=product.id where productpersonalcolor.personalColor_id=:personalColorId limit :limit offset :offset", nativeQuery = true)
+    @Query(value = "select product.id from ProductPersonalColor join product on  ProductPersonalColor.product_id=product.id where ProductPersonalColor.personalColor_id=:personalColorId limit :limit offset :offset", nativeQuery = true)
     List<Long> findByPersonalColorIdAndUserId(@Param("personalColorId")int personalColorId, @Param("limit")int limit, @Param("offset")Long offset);
 
 }
