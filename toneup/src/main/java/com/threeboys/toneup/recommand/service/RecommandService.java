@@ -77,7 +77,7 @@ public class RecommandService {
                 })
                 .collect(Collectors.toList());
 
-        ProductPageItemResponse productPageItemResponse = productRepository.findProductWithImageAndIsLiked(userId,cursor, limit, productIdList);
+        ProductPageItemResponse productPageItemResponse = productRepository.findProductWithImageAndIsLiked(userId,cursor, limit, productIdList, false);
         if(productPageItemResponse.getProducts()!=null){
             productPageItemResponse.getProducts().stream().forEach(productPreviewResponse -> {
 

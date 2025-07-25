@@ -68,7 +68,7 @@ public class CustomFeedRepositoryImpl implements CustomFeedRepository {
                 .orderBy(fi.ImageOrder.asc())
                 .fetch();
     }
-    public FeedPageItemResponse findFeedPreviewsWithImageAndIsLiked(Long userId, Long cursor, boolean isMine, int limit){
+    public FeedPageItemResponse findFeedPreviewsWithImageAndIsLiked(Long userId, Long cursor, boolean isMine, int limit, boolean myLike){
         QFeed feed = QFeed.feed;
         QImages image = QImages.images;
         QFeedsLike like = QFeedsLike.feedsLike;
@@ -88,7 +88,8 @@ public class CustomFeedRepositoryImpl implements CustomFeedRepository {
                         .and(like.user.id.eq(userId)))
                 .where(
                         cursor == null ? null : feed.id.lt(cursor),
-                        (isMine ? feed.userId.id.eq(userId) : null)
+                        (isMine ? feed.userId.id.eq(userId) : null),
+                        (myLike ? like.user.id.eq(userId) : null)
                 )
                 .orderBy(feed.id.desc())
                 .limit(limit+1)
@@ -96,13 +97,31 @@ public class CustomFeedRepositoryImpl implements CustomFeedRepository {
         boolean hasNext = feedPreviewResponseList.size()>limit;
         Long nextCursor = (hasNext) ? feedPreviewResponseList.get(limit-1).getFeedId() : null;
         Long totalCount = null;
-        if(isMine) totalCount = Optional.ofNullable(
-                jpaQueryFactory
-                        .select(feed.count())
-                        .from(feed)
-                        .where(feed.userId.id.eq(userId))
-                        .fetchOne()
-        ).orElse(0L);
+
+
+        //사용자 좋아요 피드 페이지네이션
+        if(myLike){
+            totalCount = Optional.ofNullable(
+                    jpaQueryFactory.select(like.count())
+                            .from(like)
+                            .where(like.user.id.eq(userId))
+                            .fetchOne()
+            ).orElse(0L);
+
+        }else{
+            //사용자 피드 페이지네이션
+            if(isMine){
+                totalCount = Optional.ofNullable(
+                        jpaQueryFactory
+                                .select(feed.count())
+                                .from(feed)
+                                .where(feed.userId.id.eq(userId))
+                                .fetchOne()
+                ).orElse(0L);
+            }
+        }
+
+
         List<FeedPreviewResponse> feeds = (hasNext) ? feedPreviewResponseList.subList(0,feedPreviewResponseList.size()-1) : feedPreviewResponseList.subList(0,feedPreviewResponseList.size());
         return new FeedPageItemResponse(feeds, nextCursor, hasNext, totalCount) ;
     }

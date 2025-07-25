@@ -1,5 +1,6 @@
 package com.threeboys.toneup.feed.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.querydsl.core.annotations.QueryProjection;
 import lombok.Data;
 import lombok.Getter;
@@ -8,6 +9,7 @@ import lombok.Getter;
 public class FeedPreviewResponse {
     private Long feedId;
     private String imageUrl;
+    @JsonProperty("isLiked")
     private boolean isLiked;
 
     @QueryProjection
