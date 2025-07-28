@@ -156,7 +156,7 @@ public class LikeService {
 
     public ProductPageItemResponse getLikeProductPreviews(Long userId , Long cursor, boolean isMine, int limit) {
         //다중 조인으로 전체 조회(프로필, 피드 ,이미지들, 좋아요여부)
-        ProductPageItemResponse productPageItemResponse = productRepository.findProductWithImageAndIsLiked( userId, cursor, limit, null,true);
+        ProductPageItemResponse productPageItemResponse = productRepository.findProductWithImageAndIsLiked( userId, cursor, limit, null,true, null);
         // 이미지 s3Key로 s3 조회해서 url 획득 + 프로필 이미지도 획득
         productPageItemResponse.getProducts().forEach(feedPreviewResponse -> {
             feedPreviewResponse.setImageUrl(fileService.getPreSignedUrl(feedPreviewResponse.getImageUrl()));

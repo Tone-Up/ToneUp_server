@@ -39,7 +39,6 @@ public class RecommandService {
         if(cursor==null||cursor >= totalSize){
 //            int seed =
             if(cursor==null) cursor = 0L;
-            System.out.println(cursor+": cursor CHECK!!!!!!!!!!!!!!!!!!!!!11");
             List<Long> randomIdList = productPersonalColorRepository.findByRandomProductIdList(personalColorType.getCode(),REDIS_CACHING_SIZE , cursor, userId);
 //            List<Long> randomIdList = productPersonalColorRepository.findByPersonalColorIdAndUserId(personalColorType.getCode(), limit*50, cursor);
 //            Collections.shuffle(randomIdList);
@@ -77,7 +76,7 @@ public class RecommandService {
                 })
                 .collect(Collectors.toList());
 
-        ProductPageItemResponse productPageItemResponse = productRepository.findProductWithImageAndIsLiked(userId,cursor, limit, productIdList, false);
+        ProductPageItemResponse productPageItemResponse = productRepository.findProductWithImageAndIsLiked(userId,cursor, limit, productIdList, false, null);
         if(productPageItemResponse.getProducts()!=null){
             productPageItemResponse.getProducts().stream().forEach(productPreviewResponse -> {
 
