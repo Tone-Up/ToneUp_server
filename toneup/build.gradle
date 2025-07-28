@@ -71,6 +71,10 @@ dependencies {
 	//redis
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	implementation 'org.redisson:redisson-spring-boot-starter:3.50.0'
+	implementation("com.redislabs:spring-redisearch:3.0.1")
+	//최신 버전인데  자료 적어서 위에꺼 사용
+//	implementation 'com.redis:lettucemod:4.4.0'
+
 
 	// QueryDsl
 	implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
