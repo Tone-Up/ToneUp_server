@@ -24,10 +24,14 @@ public class RedisSearchConfig {
     @Value("${spring.data.redis.master.port}")
     private int masterPort;
 
+    @Value("${spring.data.redis.password}")
+    private String redisPassword;
+
     @Bean
     public RediSearchClient rediSearchClient() {
         RedisURI redisUri = RedisURI.Builder
                 .redis(masterHost, masterPort)
+                .withPassword(redisPassword.toCharArray())
                 .build();
 
         return RediSearchClient.create(redisUri);

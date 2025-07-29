@@ -28,7 +28,7 @@ public class RedisConfig {
     @Value("${spring.data.redis.master.port}")
     private int masterPort;
 
-    @Value("spring.data.redis.password")
+    @Value("${spring.data.redis.password}")
     private String redisPassword;
 
     @Bean
@@ -43,7 +43,7 @@ public class RedisConfig {
         RedisStaticMasterReplicaConfiguration slaveConfig = new RedisStaticMasterReplicaConfiguration(masterHost, masterPort);
         // 설정에 slave 설정 값 추가
         slaveConfig.addNode(host, port);
-//        slaveConfig.setPassword(redisPassword);
+        slaveConfig.setPassword(redisPassword);
 
         return new LettuceConnectionFactory(slaveConfig, clientConfig);
     }
