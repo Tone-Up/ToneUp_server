@@ -35,7 +35,7 @@ public class RedissonConfig {
         config.useMasterSlaveServers()
                 .setMasterAddress(REDISSON_HOST_PREFIX + masterHost +":"+masterPort) // 마스터
                 .addSlaveAddress(REDISSON_HOST_PREFIX + redisHost +":"+redisPort) // 슬레이브
-                .setReadMode(ReadMode.SLAVE) //추후에 리드 모드 찾아보기
+                .setReadMode(ReadMode.MASTER_SLAVE) //추후에 리드 모드 찾아보기
 //                .setSubscriptionMode(SubscriptionMode.SLAVE) // pub/sub 사용할 때
                 .setPassword(redisPassword); // 필요 시
 
