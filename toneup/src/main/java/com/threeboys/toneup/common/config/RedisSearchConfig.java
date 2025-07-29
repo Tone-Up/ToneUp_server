@@ -19,10 +19,15 @@ public class RedisSearchConfig {
     @Value("${spring.data.redis.port}")
     private int redisPort;
 
+    @Value("${spring.data.redis.master.host}")
+    private String masterHost;
+    @Value("${spring.data.redis.master.port}")
+    private int masterPort;
+
     @Bean
     public RediSearchClient rediSearchClient() {
         RedisURI redisUri = RedisURI.Builder
-                .redis(redisHost, redisPort) // 👉 실제 redis 주소로 변경
+                .redis(masterHost, masterPort)
                 .build();
 
         return RediSearchClient.create(redisUri);
