@@ -22,7 +22,7 @@ public class CustomProductRepositoryImpl implements CustomProductRepository{
     private final JPAQueryFactory jpaQueryFactory;
 
     @Override
-    public ProductPageItemResponse findProductWithImageAndIsLiked(Long userId, Long cursor,  int limit, List<Long> randomIdList, boolean myLike) {
+    public ProductPageItemResponse findProductWithImageAndIsLiked(Long userId, Long cursor,  int limit, List<Long> randomIdList, boolean myLike, String query) {
         //    select product.* , images.s3Key , case when productslike.id is null then false else true end as isLiked
 //    from product
 //    join images on product.id = images.refId and images.type = "PRODUCT"
@@ -39,12 +39,15 @@ public class CustomProductRepositoryImpl implements CustomProductRepository{
             if(cursor==null) cursor = 0L;
             cursorCondition.and(productsLike.user.id.eq(userId)).and(product.id.gt(cursor));
         }else{
-            if (!randomIdList.isEmpty()) {
+            if (randomIdList!=null && !randomIdList.isEmpty()) {
                 //랜덤 조회 시
                 cursorCondition.and(product.id.in(randomIdList));
             }else{
-                return new ProductPageItemResponse(null);
+                if(query==null) return new ProductPageItemResponse(null);
             }
+        }
+        if(query!=null){
+            cursorCondition.or(product.productName.contains(query)).or(product.brand.contains(query));
         }
 
         List<ProductPreviewResponse> productPreviewResponseList = jpaQueryFactory
@@ -85,6 +88,7 @@ public class CustomProductRepositoryImpl implements CustomProductRepository{
             productPageItemResponse.setNextCursor(nextCursorId);
             productPageItemResponse.setTotalCount(totalCount);
         }
+
         //추천 상품 페이지네이션인 경우 레디스에서 확인해서 (nextCursor, hasNext) 넣어주기
         return productPageItemResponse;
     }
