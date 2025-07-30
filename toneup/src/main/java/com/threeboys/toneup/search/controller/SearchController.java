@@ -4,6 +4,7 @@ import com.redislabs.lettusearch.Suggestion;
 import com.threeboys.toneup.common.response.StandardResponse;
 import com.threeboys.toneup.personalColor.domain.PersonalColorType;
 import com.threeboys.toneup.recommand.dto.ProductPageItemResponse;
+import com.threeboys.toneup.search.dto.AutoCompleteResponse;
 import com.threeboys.toneup.search.service.SearchService;
 import com.threeboys.toneup.security.CustomOAuth2User;
 import lombok.RequiredArgsConstructor;
@@ -33,8 +34,8 @@ public class SearchController {
     @GetMapping("/auto-complete")
     public ResponseEntity<?> getAutoCompleteList(@RequestParam(required = false) String keyword){
         System.out.println("keyword; " + keyword);
-        List<Suggestion<String>> autoComplete = searchService.getAutoComplete(keyword);
-        return ResponseEntity.ok(new StandardResponse<>(true, 0, "ok",autoComplete));
+        AutoCompleteResponse autoCompleteResponse = searchService.getAutoComplete(keyword);
+        return ResponseEntity.ok(new StandardResponse<>(true, 0, "ok",autoCompleteResponse));
     }
 
 }

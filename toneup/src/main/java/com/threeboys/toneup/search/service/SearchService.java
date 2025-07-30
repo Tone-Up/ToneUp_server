@@ -4,6 +4,7 @@ import com.redislabs.lettusearch.Suggestion;
 import com.threeboys.toneup.common.service.FileService;
 import com.threeboys.toneup.product.repository.ProductRepository;
 import com.threeboys.toneup.recommand.dto.ProductPageItemResponse;
+import com.threeboys.toneup.search.dto.AutoCompleteResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -28,7 +29,8 @@ public class SearchService {
         return productPageItemResponse;
     }
 
-    public List<Suggestion<String>> getAutoComplete(String keyword) {
-        return redisSearchService.autoComplete(keyword);
+    public AutoCompleteResponse getAutoComplete(String keyword) {
+        List<Suggestion<String>> suggestionList =  redisSearchService.autoComplete(keyword);
+        return  AutoCompleteResponse.toDto(suggestionList);
     }
 }
