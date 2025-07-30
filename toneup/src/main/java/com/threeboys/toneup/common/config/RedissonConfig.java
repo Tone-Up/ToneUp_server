@@ -37,6 +37,8 @@ public class RedissonConfig {
                 .addSlaveAddress(REDISSON_HOST_PREFIX + redisHost +":"+redisPort) // 슬레이브
                 .setReadMode(ReadMode.MASTER_SLAVE) //추후에 리드 모드 찾아보기
 //                .setSubscriptionMode(SubscriptionMode.SLAVE) // pub/sub 사용할 때
+                .setSlaveConnectionMinimumIdleSize(0)// 슬레이브 없어도 동작하도록 설정
+                .setSlaveConnectionPoolSize(6)
                 .setPassword(redisPassword); // 필요 시
 
 //        config.useSingleServer()
