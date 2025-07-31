@@ -30,7 +30,13 @@ public class JWTFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        String path = request.getRequestURI();
 
+        if (path.equals("/api/auth/refresh")) {
+            // 리프레시 토큰 요청은 토큰 만료 검사를 건너뜀
+            filterChain.doFilter(request, response);
+            return;
+        }
         //Header에서 토큰 꺼내기
         String authorizationHeader = request.getHeader("Authorization");
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
