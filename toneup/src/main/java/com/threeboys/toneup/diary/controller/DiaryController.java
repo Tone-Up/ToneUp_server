@@ -13,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api")
@@ -48,6 +50,6 @@ public class DiaryController {
     public ResponseEntity<?> deleteDiary(@PathVariable Long diaryId, @AuthenticationPrincipal CustomOAuth2User customOAuth2User){
         Long userId = customOAuth2User.getId();
         diaryService.deleteDiary(userId, diaryId);
-        return ResponseEntity.ok(new StandardResponse<>(true, 0, "ok",null));
+        return ResponseEntity.ok(new StandardResponse<>(true, 0, "ok", Collections.emptyMap()));
     }
 }
