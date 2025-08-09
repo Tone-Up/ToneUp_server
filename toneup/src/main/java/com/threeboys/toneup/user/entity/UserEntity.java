@@ -5,6 +5,7 @@ import com.threeboys.toneup.personalColor.domain.PersonalColor;
 import com.threeboys.toneup.security.provider.ProviderType;
 import com.threeboys.toneup.user.domain.User;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -14,7 +15,7 @@ import java.util.Objects;
 @Entity
 @Getter
 @Setter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "users")
 public class UserEntity {
 

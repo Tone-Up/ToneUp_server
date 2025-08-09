@@ -1,4 +1,4 @@
-package com.threeboys.toneup.socketio.DTO;
+package com.threeboys.toneup.socketio.dto;
 
 import lombok.Getter;
 import lombok.Setter;

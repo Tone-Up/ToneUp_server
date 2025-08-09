@@ -10,7 +10,7 @@ public class DeviceToken {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    private UserEntity userId;
+    private UserEntity user;
     private String token;
     private String deviceType;
     private boolean isActive;

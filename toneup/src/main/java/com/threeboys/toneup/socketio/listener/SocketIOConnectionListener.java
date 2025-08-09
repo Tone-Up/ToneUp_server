@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 @Component
 @Slf4j
@@ -33,18 +34,32 @@ public class SocketIOConnectionListener {
      */
     public ConnectListener listenConnected() {
         return client -> {
-            Map<String, List<String>> params = client.getHandshakeData().getUrlParams();
-//            log.info("connect:" + params.toString());
-            String userId = Optional.ofNullable(params.get("userId"))
-                    .flatMap(list -> list.stream().findFirst())
-                    .orElse(null);
+//            Map<String, List<String>> params = client.getHandshakeData().getUrlParams();
+////            log.info("connect:" + params.toString());
+//            String userId = Optional.ofNullable(params.get("userId"))
+//                    .flatMap(list -> list.stream().findFirst())
+//                    .orElse(null);
+//            if (userId != null) {
+//                client.set("userId", userId);
+//                log.info("User connected: userId={}, sessionId={}", userId, client.getSessionId());
+//            } else {
+//                log.warn("Missing userId on connect");
+//            }
 
-            if (userId != null) {
+            String userId = client.getHandshakeData().getSingleUrlParam("userId");
+            String roomId = client.getHandshakeData().getSingleUrlParam("roomId");
+
+            if (userId != null && roomId != null) {
                 client.set("userId", userId);
-                log.info("User connected: userId={}, sessionId={}", userId, client.getSessionId());
+                client.set("roomId", roomId);
+                client.joinRoom(roomId); // 연결과 동시에 방 입장
+                client.getNamespace().getRoomOperations(roomId).sendEvent("joinRoom", "방 '" + roomId + "'에 입장했습니다.");
+                log.info("client{}가 방 : {} 에 입장했습니다.", client.getSessionId(), roomId);
+                log.info("User {} joined room {} sessionId {}", userId, roomId, client.getSessionId());
             } else {
                 log.warn("Missing userId on connect");
             }
+
         };
     }
 
@@ -54,6 +69,11 @@ public class SocketIOConnectionListener {
     public DisconnectListener listenDisconnected() {
         return client -> {
             String sessionId = client.getSessionId().toString();
+            Set<String> rooms =  client.getAllRooms();
+            String roomId = String.valueOf(rooms.stream().findFirst());
+            client.leaveRoom(roomId);
+            client.getNamespace().getRoomOperations(roomId).sendEvent("leaveRoom", "방 '" + roomId + "'에서 나갔습니다.");
+
             log.info("disconnect: " + sessionId);
             client.disconnect();
         };
