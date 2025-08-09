@@ -5,7 +5,7 @@ import com.threeboys.toneup.chat.domain.ChatRooms;
 import com.threeboys.toneup.chat.repository.ChatMessagesRepository;
 import com.threeboys.toneup.chat.repository.ChatRoomsRepository;
 import com.threeboys.toneup.chat.service.ChatMessagesService;
-import com.threeboys.toneup.socketio.DTO.ChatMessage;
+import com.threeboys.toneup.socketio.dto.ChatMessage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,7 +38,7 @@ public class chatMessagesTest {
         ChatRooms chatRoom = new ChatRooms();
         ChatMessages entity = new ChatMessages(); // 더미 객체
 
-        when(message.getRoomId()).thenReturn(1L);
+        when(message.getRoomId()).thenReturn(String.valueOf(1L));
         when(chatRoomsRepository.findById(1L)).thenReturn(Optional.of(chatRoom));
         when(message.toEntity(chatRoom)).thenReturn(entity);
 

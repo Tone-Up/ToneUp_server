@@ -1,7 +1,7 @@
 package com.threeboys.toneup.chat;
 
 import com.threeboys.toneup.chat.domain.ChatRoom;
-import com.threeboys.toneup.socketio.DTO.ChatMessage;
+import com.threeboys.toneup.socketio.dto.ChatMessage;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

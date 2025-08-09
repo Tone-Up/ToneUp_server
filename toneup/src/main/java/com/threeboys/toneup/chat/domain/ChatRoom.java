@@ -1,6 +1,6 @@
 package com.threeboys.toneup.chat.domain;
 
-import com.threeboys.toneup.socketio.DTO.ChatMessage;
+import com.threeboys.toneup.socketio.dto.ChatMessage;
 
 import java.util.Collections;
 import java.util.HashSet;

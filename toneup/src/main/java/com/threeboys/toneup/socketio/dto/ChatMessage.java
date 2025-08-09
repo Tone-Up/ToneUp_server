@@ -1,15 +1,17 @@
-package com.threeboys.toneup.socketio.DTO;
+package com.threeboys.toneup.socketio.dto;
 
 import com.threeboys.toneup.chat.domain.ChatMessages;
 import com.threeboys.toneup.chat.domain.ChatRooms;
 import com.threeboys.toneup.chat.domain.MessageType;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
+@NoArgsConstructor
 public class ChatMessage {
-    private Long roomId;
+    private String roomId;
     private String content;
     private Long senderId;
     private MessageType type;
