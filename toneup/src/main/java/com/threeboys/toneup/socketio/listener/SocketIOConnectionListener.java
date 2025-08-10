@@ -48,12 +48,14 @@ public class SocketIOConnectionListener {
 
             String userId = client.getHandshakeData().getSingleUrlParam("userId");
             String roomId = client.getHandshakeData().getSingleUrlParam("roomId");
+            String nickname = client.getHandshakeData().getSingleUrlParam("nickname");
 
             if (userId != null && roomId != null) {
                 client.set("userId", userId);
                 client.set("roomId", roomId);
+                client.set("nickname", nickname);
                 client.joinRoom(roomId); // 연결과 동시에 방 입장
-                client.getNamespace().getRoomOperations(roomId).sendEvent("joinRoom", "방 '" + roomId + "'에 입장했습니다.");
+                client.getNamespace().getRoomOperations(roomId).sendEvent("joinRoom", "유저 : " + nickname + "이 입장했습니다.");
                 log.info("client{}가 방 : {} 에 입장했습니다.", client.getSessionId(), roomId);
                 log.info("User {} joined room {} sessionId {}", userId, roomId, client.getSessionId());
             } else {
@@ -72,7 +74,8 @@ public class SocketIOConnectionListener {
             Set<String> rooms =  client.getAllRooms();
             String roomId = String.valueOf(rooms.stream().findFirst());
             client.leaveRoom(roomId);
-            client.getNamespace().getRoomOperations(roomId).sendEvent("leaveRoom", "방 '" + roomId + "'에서 나갔습니다.");
+            String nickname = client.getHandshakeData().getSingleUrlParam("nickname");
+            client.getNamespace().getRoomOperations(roomId).sendEvent("leaveRoom", "유저 : " + nickname + "이 나갔습니다.");
 
             log.info("disconnect: " + sessionId);
             client.disconnect();

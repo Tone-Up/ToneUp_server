@@ -1,5 +1,7 @@
 package com.threeboys.toneup.chat.controller;
 
+import com.threeboys.toneup.chat.dto.ChatListRequest;
+import com.threeboys.toneup.chat.dto.ChatPreviewResponse;
 import com.threeboys.toneup.chat.dto.CreateChatRoomRequest;
 import com.threeboys.toneup.chat.service.ChatMessagesService;
 import com.threeboys.toneup.common.request.FileNamesDTO;
@@ -32,6 +34,21 @@ public class ChatController {
         Long userId = customOAuth2User.getId();
         chatMessagesService.leaveChatRoom(chatRoomId, userId);
         return ResponseEntity.ok(new StandardResponse<>(true, 0, "ok", Collections.emptyMap()));
+    }
+
+    @PostMapping("/chats")
+    public ResponseEntity<?> getChatList(@RequestBody ChatListRequest chatListRequest , @AuthenticationPrincipal CustomOAuth2User customOAuth2User){
+        Long userId = customOAuth2User.getId();
+        ChatPreviewResponse chatPreviewResponse = chatMessagesService.getChatList(userId, chatListRequest);
+        return ResponseEntity.ok(new StandardResponse<>(true, 0, "ok", chatPreviewResponse));
+
+    }
+    @GetMapping("/chats/{chatRoomId}")
+    public ResponseEntity<?> getChatDetail(@PathVariable Long chatRoomId, @RequestParam(required = false) Long lastMessageId, @AuthenticationPrincipal CustomOAuth2User customOAuth2User){
+        Long userId = customOAuth2User.getId();
+        ChatPreviewResponse chatPreviewResponse = chatMessagesService.getChatDetail(userId, chatRoomId, lastMessageId);
+        return ResponseEntity.ok(new StandardResponse<>(true, 0, "ok", chatPreviewResponse));
+
     }
 
 }

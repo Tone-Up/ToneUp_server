@@ -1,11 +1,15 @@
 package com.threeboys.toneup.chat.domain;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnDefault;
+
+import java.time.LocalDateTime;
+
 @Builder
 @Entity
 @NoArgsConstructor
@@ -17,7 +21,7 @@ public class ChatMessages {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    private ChatRooms roomId;
+    private ChatRooms room;
 
     private Long senderId;
 
@@ -28,6 +32,10 @@ public class ChatMessages {
 
     @ColumnDefault("0")
     private int unreadCount;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    private LocalDateTime sentAt;
+
     public void updateUnreadCnt(int count){
         this.unreadCount = count;
     }
