@@ -3,12 +3,15 @@ package com.threeboys.toneup.chat.service;
 import com.threeboys.toneup.chat.domain.ChatMessages;
 import com.threeboys.toneup.chat.domain.ChatRoomUser;
 import com.threeboys.toneup.chat.domain.ChatRooms;
+import com.threeboys.toneup.chat.dto.ChatDetailResponse;
+import com.threeboys.toneup.chat.dto.ChatListRequest;
+import com.threeboys.toneup.chat.dto.ChatPreviewResponse;
 import com.threeboys.toneup.chat.dto.CreateChatRoomRequest;
 import com.threeboys.toneup.chat.exception.ChatRoomNotFoundException;
 import com.threeboys.toneup.chat.repository.ChatMessagesRepository;
 import com.threeboys.toneup.chat.repository.ChatRoomUserRepository;
 import com.threeboys.toneup.chat.repository.ChatRoomsRepository;
-import com.threeboys.toneup.feed.exception.FeedNotFoundException;
+import com.threeboys.toneup.common.service.FileService;
 import com.threeboys.toneup.socketio.dto.ChatMessage;
 import com.threeboys.toneup.user.entity.UserEntity;
 import com.threeboys.toneup.user.repository.UserRepository;
@@ -16,7 +19,11 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,6 +33,8 @@ public class ChatMessagesService {
     private final ChatRoomsRepository chatRoomsRepository;
     private final ChatRoomUserRepository chatRoomUserRepository;
     private final UserRepository userRepository;
+
+    private final FileService fileService;
 
     @Transactional
     public void saveMessage(ChatMessage message, boolean isReceiverInRoom, int unreadCount) {
@@ -68,6 +77,33 @@ public class ChatMessagesService {
 
     public void leaveChatRoom(Long chatRoomId, Long userId) {
         chatRoomUserRepository.deleteByChatRoomIdAndUserId(chatRoomId, userId);
+
+    }
+
+    public ChatPreviewResponse getChatList(Long userId, ChatListRequest chatListRequest) {
+
+        return chatRoomsRepository.findUserIdChatList(userId, chatListRequest);
+    }
+
+    public ChatDetailResponse getChatDetail(Long userId, Long chatRoomId, Long lastMessageId) {
+        List<ChatMessages> chatMessagesList = chatMessagesRepository.findByRoomIdAndIdGreaterThan(chatRoomId, lastMessageId);
+
+        AtomicReference<Long> partnerId = null;
+        ChatDetailResponse chatDetailResponse = new ChatDetailResponse();
+        List<ChatDetailResponse.MessageDetailDto> messages = new ArrayList<>();
+        chatMessagesList.stream().forEach(chatMessages -> {
+            boolean isRead = chatMessages.getUnreadCount() == 0;
+            boolean isMine = Objects.equals(userId, chatMessages.getSenderId());
+            if(isMine) partnerId.set(chatMessages.getSenderId());
+
+            messages.add(new ChatDetailResponse.MessageDetailDto(chatMessages.getId(), chatMessages.getSenderId(), chatMessages.getContent(), chatMessages.getSentAt(), isRead, isMine));
+        });
+        UserEntity partner = userRepository.findById(partnerId.get()).orElseThrow();
+        chatDetailResponse.setMessages(messages);
+        chatDetailResponse.setPartnerId(partner.getId());
+        chatDetailResponse.setPartnerNickname(partner.getNickname());
+        chatDetailResponse.setPartnerProfileImageUrl(fileService.getPreSignedUrl(partner.getProfileImageId().getS3Key()));
+        return chatDetailResponse;
     }
 
 //    public int userUnreadCount(Long userId){

@@ -1,5 +1,6 @@
 package com.threeboys.toneup.chat.controller;
 
+import com.threeboys.toneup.chat.dto.ChatDetailResponse;
 import com.threeboys.toneup.chat.dto.ChatListRequest;
 import com.threeboys.toneup.chat.dto.ChatPreviewResponse;
 import com.threeboys.toneup.chat.dto.CreateChatRoomRequest;
@@ -46,9 +47,8 @@ public class ChatController {
     @GetMapping("/chats/{chatRoomId}")
     public ResponseEntity<?> getChatDetail(@PathVariable Long chatRoomId, @RequestParam(required = false) Long lastMessageId, @AuthenticationPrincipal CustomOAuth2User customOAuth2User){
         Long userId = customOAuth2User.getId();
-        ChatPreviewResponse chatPreviewResponse = chatMessagesService.getChatDetail(userId, chatRoomId, lastMessageId);
-        return ResponseEntity.ok(new StandardResponse<>(true, 0, "ok", chatPreviewResponse));
-
+        ChatDetailResponse chatDetailResponse = chatMessagesService.getChatDetail(userId, chatRoomId, lastMessageId);
+        return ResponseEntity.ok(new StandardResponse<>(true, 0, "ok", chatDetailResponse));
     }
 
 }

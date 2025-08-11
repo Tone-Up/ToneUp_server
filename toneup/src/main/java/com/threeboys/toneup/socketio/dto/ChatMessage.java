@@ -23,7 +23,7 @@ public class ChatMessage {
         return ChatMessages.builder()
                 .type(type)
                 .content(content)
-                .roomId(chatRooms)
+                .room(chatRooms)
                 .senderId(senderId)
                 .build();
     }
