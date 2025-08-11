@@ -83,16 +83,15 @@ public class RoomController {
 //                })
 //                .count();
 
-        int connectedReceivers = roomSize - connectedUserIds.size();
 
-        int unreadCount = roomSize - connectedReceivers -1;
+        int unreadCount = roomSize - connectedUserIds.size();
         log.info("unreadCount : {}", unreadCount);
 
         //(방에 있는 유저들에게) 소켓 통신 메시지 전송
         client.getNamespace().getRoomOperations(roomId.toString())
                 .sendEvent("chat", message);
 
-        if(connectedReceivers >= 1){
+        if(unreadCount ==0){
             //unread_count 증가 없이(unread_count default 0으로 설정) db 저장 후
             chatMessagesService.saveMessage(message, true, unreadCount);
         }//아닐경우(이 방에 존재하지 않을경우)
