@@ -1,11 +1,13 @@
 package com.threeboys.toneup.socketio.service;
 
 import com.google.firebase.messaging.*;
+import com.threeboys.toneup.socketio.domain.DeviceToken;
 import com.threeboys.toneup.socketio.dto.ChatMessage;
 import com.threeboys.toneup.socketio.repository.DeviceTokenRepository;
 import com.threeboys.toneup.user.entity.UserEntity;
 import com.threeboys.toneup.user.exception.UserNotFoundException;
 import com.threeboys.toneup.user.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -70,5 +72,22 @@ public class FcmService {
                 .addAllTokens(registrationTokens)
                 .build();
 
+    }
+
+    @Transactional
+    public void activateTokenForUser(Long userId, String fcmToken) {
+        List<DeviceToken> userTokens = deviceTokenRepository.findByUserId(userId);
+
+        for (DeviceToken fcm : userTokens) {
+            if (fcm.getToken().equals(fcmToken)) {
+                if (!fcm.isActive()) {
+                    fcm.changeIsActive(true);
+                }
+            } else {
+                if (fcm.isActive()) {
+                    fcm.changeIsActive(false);
+                }
+            }
+        }
     }
 }

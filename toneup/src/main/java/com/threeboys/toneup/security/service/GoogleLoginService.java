@@ -11,6 +11,7 @@ import com.threeboys.toneup.security.jwt.JwtConstants;
 import com.threeboys.toneup.security.provider.ProviderType;
 import com.threeboys.toneup.security.response.OAuth2LoginRequest;
 import com.threeboys.toneup.security.response.OAuthLoginResponseDTO;
+import com.threeboys.toneup.socketio.service.FcmService;
 import com.threeboys.toneup.user.entity.UserEntity;
 import com.threeboys.toneup.user.repository.UserRepository;
 import com.threeboys.toneup.user.service.Userservice;
@@ -25,14 +26,16 @@ import java.util.Optional;
 @Service
 public class GoogleLoginService implements OAuthLoginService{
     private final Userservice userservice;
+    private final FcmService fcmService;
     private final JWTUtil jwtUtil;
     private final GoogleIdTokenVerifier verifier;
 
     public GoogleLoginService(@Value("${google.client-id}") String clientId,
                               @Value("${spring.security.oauth2.client.registration.google.client-id}") String webClientId,
                               Userservice userservice, JWTUtil jwtUtil,
-                              NetHttpTransport transport, JsonFactory jsonFactory) {
+                              NetHttpTransport transport, JsonFactory jsonFactory, FcmService fcmService) {
         this.userservice = userservice;
+        this.fcmService = fcmService;
 //        this.clientId = clientId;
         this.jwtUtil = jwtUtil;
         // Google ID 토큰 검증기 생성
@@ -64,6 +67,10 @@ public class GoogleLoginService implements OAuthLoginService{
 
             String accessToken = jwtUtil.createJwt(socialUser.getId(), socialUser.getNickname(), personalColorType, socialUser.getRole(), JwtConstants.ACCESS_TOKEN_EXPIRATION);
             String refreshToken = jwtUtil.createRefreshJwt(socialUser.getId(), JwtConstants.REFRESH_TOKEN_EXPIRATION);
+
+            String fcmToken = request.getFcmToken();
+            Long userId = socialUser.getId();
+            fcmService.activateTokenForUser(userId, fcmToken);
 
             OAuthLoginResponseDTO dto =OAuthLoginResponseDTO.builder()
                     .provider(providerType.name())

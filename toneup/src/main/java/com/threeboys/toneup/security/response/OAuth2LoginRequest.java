@@ -8,5 +8,5 @@ import lombok.Setter;
 public class OAuth2LoginRequest {
     private String provider;
     private String token;
-
+    private String fcmToken;
 }

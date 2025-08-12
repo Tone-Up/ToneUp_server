@@ -13,6 +13,9 @@ public interface DeviceTokenRepository extends JpaRepository<DeviceToken, Long> 
 
     @Query("Select d.token From DeviceToken d")
     List<String> findActiveTokensByRoomId(@Param("roomId") Long roomId);
+
     @Query("Select d.token From DeviceToken d where d.user.id in :userIds and d.isActive = true")
     List<String> findActiveTokensByUserIds(Set<Long> userIds);
+
+    List<DeviceToken> findByUserId(Long userId);
 }
