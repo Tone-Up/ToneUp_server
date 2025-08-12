@@ -3,12 +3,12 @@ package com.threeboys.toneup.socketio.dto;
 import com.threeboys.toneup.chat.domain.ChatMessages;
 import com.threeboys.toneup.chat.domain.ChatRooms;
 import com.threeboys.toneup.chat.domain.MessageType;
+import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 public class ChatMessage {
     private String roomId;

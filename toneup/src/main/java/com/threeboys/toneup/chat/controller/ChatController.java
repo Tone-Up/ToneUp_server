@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -37,17 +38,16 @@ public class ChatController {
         return ResponseEntity.ok(new StandardResponse<>(true, 0, "ok", Collections.emptyMap()));
     }
 
-    @PostMapping("/chats")
-    public ResponseEntity<?> getChatList(@RequestBody ChatListRequest chatListRequest , @AuthenticationPrincipal CustomOAuth2User customOAuth2User){
+    @GetMapping("/chats")
+    public ResponseEntity<?> getChatList(@RequestParam(required = false) Long cursor, @RequestParam(defaultValue = "10") int limit, @AuthenticationPrincipal CustomOAuth2User customOAuth2User){
         Long userId = customOAuth2User.getId();
-        ChatPreviewResponse chatPreviewResponse = chatMessagesService.getChatList(userId, chatListRequest);
+        ChatPreviewResponse chatPreviewResponse = chatMessagesService.getChatList(userId, cursor, limit);
         return ResponseEntity.ok(new StandardResponse<>(true, 0, "ok", chatPreviewResponse));
-
     }
     @GetMapping("/chats/{chatRoomId}")
-    public ResponseEntity<?> getChatDetail(@PathVariable Long chatRoomId, @RequestParam(required = false) Long lastMessageId, @AuthenticationPrincipal CustomOAuth2User customOAuth2User){
+    public ResponseEntity<?> getChatDetail(@PathVariable Long chatRoomId, @RequestParam(required = false) LocalDateTime lastSentAt, @AuthenticationPrincipal CustomOAuth2User customOAuth2User){
         Long userId = customOAuth2User.getId();
-        ChatDetailResponse chatDetailResponse = chatMessagesService.getChatDetail(userId, chatRoomId, lastMessageId);
+        ChatDetailResponse chatDetailResponse = chatMessagesService.getChatDetail(userId, chatRoomId, lastSentAt);
         return ResponseEntity.ok(new StandardResponse<>(true, 0, "ok", chatDetailResponse));
     }
 

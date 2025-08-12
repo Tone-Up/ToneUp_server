@@ -3,10 +3,7 @@ package com.threeboys.toneup.chat.service;
 import com.threeboys.toneup.chat.domain.ChatMessages;
 import com.threeboys.toneup.chat.domain.ChatRoomUser;
 import com.threeboys.toneup.chat.domain.ChatRooms;
-import com.threeboys.toneup.chat.dto.ChatDetailResponse;
-import com.threeboys.toneup.chat.dto.ChatListRequest;
-import com.threeboys.toneup.chat.dto.ChatPreviewResponse;
-import com.threeboys.toneup.chat.dto.CreateChatRoomRequest;
+import com.threeboys.toneup.chat.dto.*;
 import com.threeboys.toneup.chat.exception.ChatRoomNotFoundException;
 import com.threeboys.toneup.chat.repository.ChatMessagesRepository;
 import com.threeboys.toneup.chat.repository.ChatRoomUserRepository;
@@ -17,8 +14,14 @@ import com.threeboys.toneup.user.entity.UserEntity;
 import com.threeboys.toneup.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -50,7 +53,8 @@ public class ChatMessagesService {
 
         Long messageId = chatMessages.getId();
         String content = chatMessages.getContent();
-        chatRoom.updateLastMessage(messageId, content);
+        LocalDateTime sentAt = LocalDateTime.now();
+        chatRoom.updateLastMessage(sentAt, content);
     }
 
     public Set<Long> getUserIdsInRoom(Long roomId) {
@@ -80,13 +84,30 @@ public class ChatMessagesService {
 
     }
 
-    public ChatPreviewResponse getChatList(Long userId, ChatListRequest chatListRequest) {
+    public ChatPreviewResponse getChatList(Long userId, Long offset, int limit) {
+        int page = (int) (offset / limit);
+        Pageable pageable = PageRequest.of(page, limit, Sort.unsorted());
 
-        return chatRoomsRepository.findUserIdChatList(userId, chatListRequest);
+        Page<ChatPreviewDto> chatPage = chatRoomsRepository.findUserIdChatList(userId, pageable);
+
+        // 프로필 이미지 URL 사전 서명 URL로 변환
+        List<ChatPreviewDto> chatPreviewList = chatPage.stream()
+                .map(dto -> {
+                    dto.setPartnerProfileImageUrl(fileService.getPreSignedUrl(dto.getPartnerProfileImageUrl()));
+                    return dto;
+                })
+                .collect(Collectors.toList());
+
+        ChatPreviewResponse response = new ChatPreviewResponse(chatPreviewList);
+        response.setHasNext(chatPage.hasNext());
+        response.setNextCursor(offset + limit); // offset 기반 페이징일 경우
+        response.setTotalCount(chatPage.getTotalElements());
+
+        return response;
     }
-
-    public ChatDetailResponse getChatDetail(Long userId, Long chatRoomId, Long lastMessageId) {
-        List<ChatMessages> chatMessagesList = chatMessagesRepository.findByRoomIdAndIdGreaterThan(chatRoomId, lastMessageId);
+    @Transactional
+    public ChatDetailResponse getChatDetail(Long userId, Long chatRoomId, LocalDateTime lastSentAt) {
+        List<ChatMessages> chatMessagesList = chatMessagesRepository.findByRoomIdAndSentAtGreaterThan(chatRoomId, lastSentAt);
 
         AtomicReference<Long> partnerId = null;
         ChatDetailResponse chatDetailResponse = new ChatDetailResponse();
@@ -98,11 +119,20 @@ public class ChatMessagesService {
 
             messages.add(new ChatDetailResponse.MessageDetailDto(chatMessages.getId(), chatMessages.getSenderId(), chatMessages.getContent(), chatMessages.getSentAt(), isRead, isMine));
         });
+        //unreadCount -1 더티 체킹으로
+        chatMessagesList.stream().forEach(chatMessages -> {
+            int unreadCount = chatMessages.getUnreadCount();
+            if(unreadCount>0) chatMessages.updateUnreadCnt(unreadCount-1);
+        });
+
+
         UserEntity partner = userRepository.findById(partnerId.get()).orElseThrow();
         chatDetailResponse.setMessages(messages);
         chatDetailResponse.setPartnerId(partner.getId());
         chatDetailResponse.setPartnerNickname(partner.getNickname());
         chatDetailResponse.setPartnerProfileImageUrl(fileService.getPreSignedUrl(partner.getProfileImageId().getS3Key()));
+
+
         return chatDetailResponse;
     }
 
