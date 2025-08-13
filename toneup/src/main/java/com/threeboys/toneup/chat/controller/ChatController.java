@@ -39,7 +39,7 @@ public class ChatController {
     }
 
     @GetMapping("/chats")
-    public ResponseEntity<?> getChatList(@RequestParam(required = false) Long cursor, @RequestParam(defaultValue = "10") int limit, @AuthenticationPrincipal CustomOAuth2User customOAuth2User){
+    public ResponseEntity<?> getChatList(@RequestParam(defaultValue = "0") Long cursor, @RequestParam(defaultValue = "10") int limit, @AuthenticationPrincipal CustomOAuth2User customOAuth2User){
         Long userId = customOAuth2User.getId();
         ChatPreviewResponse chatPreviewResponse = chatMessagesService.getChatList(userId, cursor, limit);
         return ResponseEntity.ok(new StandardResponse<>(true, 0, "ok", chatPreviewResponse));

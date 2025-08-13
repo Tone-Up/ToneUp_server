@@ -1,6 +1,7 @@
 package com.threeboys.toneup.chat.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
 import lombok.Data;
@@ -27,7 +28,9 @@ public class ChatDetailResponse {
         private String content;
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
         private LocalDateTime sentAt;
+        @JsonProperty("isRead")
         private boolean isRead;
+        @JsonProperty("isMine")
         private boolean isMine;
     }
 }

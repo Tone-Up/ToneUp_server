@@ -1,5 +1,6 @@
 package com.threeboys.toneup.feed.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.querydsl.core.annotations.QueryProjection;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -13,7 +14,9 @@ public class FeedDetailDto {
     private String profileS3Key;
     private String feedImageS3Key;
     private int likeCount;
+    @JsonProperty("isLiked")
     private boolean isLiked;
+    @JsonProperty("isMine")
     private boolean isMine;
 
     @QueryProjection

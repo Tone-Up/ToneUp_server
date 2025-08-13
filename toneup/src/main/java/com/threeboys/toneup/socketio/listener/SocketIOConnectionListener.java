@@ -74,8 +74,8 @@ public class SocketIOConnectionListener {
             Set<String> rooms =  client.getAllRooms();
             String roomId = String.valueOf(rooms.stream().findFirst());
             client.leaveRoom(roomId);
-            String nickname = client.getHandshakeData().getSingleUrlParam("nickname");
-            client.getNamespace().getRoomOperations(roomId).sendEvent("leaveRoom", "유저 : " + nickname + "이 나갔습니다.");
+//            String nickname = client.getHandshakeData().getSingleUrlParam("nickname");
+//            client.getNamespace().getRoomOperations(roomId).sendEvent("leaveRoom", "유저 : " + nickname + "이 나갔습니다.");
 
             log.info("disconnect: " + sessionId);
             client.disconnect();

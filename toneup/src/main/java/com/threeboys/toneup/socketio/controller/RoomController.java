@@ -23,7 +23,7 @@ public class RoomController {
 
     private final ChatMessagesService chatMessagesService;
     private final FcmService fcmService;
-    private final SocketIOServer server;
+
 //    @SocketMapping(endpoint = "joinRoom", requestCls = RoomRequest.class)
 //    public void joinRoom(SocketIOClient client, RoomRequest request) {
 //        String room = request.getRoom();
@@ -37,13 +37,15 @@ public class RoomController {
 //        log.info("client{}가 방 : {} 에 입장했습니다.", client.getSessionId(), room);
 //    }
 
-    @SocketMapping(endpoint = "leaveRoom", requestCls = RoomRequest.class)
-    public void leaveRoom(SocketIOClient client, RoomRequest request) {
-        String room = request.getRoom();
-        client.leaveRoom(room);
-//        client.getNamespace().getRoomOperations(room).sendEvent("joinRoom", "방 '" + room + "'에 입장했습니다.");
-        log.info("client{}가 방 : {} 에서 나갔습니다.", client.getSessionId(), room);
-    }
+//    @SocketMapping(endpoint = "leaveRoom", requestCls = RoomRequest.class)
+//    public void leaveRoom(SocketIOClient client, RoomRequest request) {
+//        String roomId = request.getRoom();
+//        client.leaveRoom(roomId);
+//
+//        String nickname = client.getHandshakeData().getSingleUrlParam("nickname");
+//        client.getNamespace().getRoomOperations(roomId).sendEvent("leaveRoom", "유저 : " + nickname + "이 나갔습니다.");
+//        log.info("client{}가 방 : {} 에서 나갔습니다.", client.getSessionId(), roomId);
+//    }
 
     @SocketMapping(endpoint = "chat", requestCls = ChatMessage.class)
     public void chat(SocketIOClient client, ChatMessage message) {
@@ -118,4 +120,6 @@ public class RoomController {
         }
 
     }
+
+
 }
