@@ -30,9 +30,7 @@ public class ChatController {
 
     @PostMapping("/chats")
     public ResponseEntity<?> createChatRoom(@RequestBody CreateChatRoomRequest createChatRoomRequest){
-        Long roomId = chatMessagesService.createChatRoom(createChatRoomRequest);
-        RoomRequest roomRequest = new RoomRequest(roomId.toString());
-        return ResponseEntity.ok(new StandardResponse<>(true, 0, "ok", Map.of("roomId", roomRequest)));
+        return ResponseEntity.ok(new StandardResponse<>(true, 0, "ok", Map.of("roomId", chatMessagesService.createChatRoom(createChatRoomRequest))));
     }
     @DeleteMapping("/chats/{chatRoomId}")
     public ResponseEntity<?> leaveChatRoom(@PathVariable Long chatRoomId, @AuthenticationPrincipal CustomOAuth2User customOAuth2User){

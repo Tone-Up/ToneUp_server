@@ -18,8 +18,8 @@ public class ChatMessage {
     private String content;
     private Long senderId;
     private MessageType type;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    private LocalDateTime sentAt;
+//    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
+//    private LocalDateTime sentAt;
     private ChatMessage(Long senderId, String content){
         this.senderId = senderId;
         this.content = content;
