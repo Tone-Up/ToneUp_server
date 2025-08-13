@@ -7,4 +7,8 @@ import lombok.Setter;
 @Setter
 public class RoomRequest {
     private String room;
+
+    public RoomRequest(String room) {
+        this.room = room;
+    }
 }

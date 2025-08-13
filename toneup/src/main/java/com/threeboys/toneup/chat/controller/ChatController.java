@@ -11,6 +11,7 @@ import com.threeboys.toneup.common.response.PresignedUrlResponseDTO;
 import com.threeboys.toneup.common.response.StandardResponse;
 import com.threeboys.toneup.common.service.FileService;
 import com.threeboys.toneup.security.CustomOAuth2User;
+import com.threeboys.toneup.socketio.dto.RoomRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -29,7 +30,9 @@ public class ChatController {
 
     @PostMapping("/chats")
     public ResponseEntity<?> createChatRoom(@RequestBody CreateChatRoomRequest createChatRoomRequest){
-        return ResponseEntity.ok(new StandardResponse<>(true, 0, "ok", Map.of("roomId", chatMessagesService.createChatRoom(createChatRoomRequest))));
+        Long roomId = chatMessagesService.createChatRoom(createChatRoomRequest);
+        RoomRequest roomRequest = new RoomRequest(roomId.toString());
+        return ResponseEntity.ok(new StandardResponse<>(true, 0, "ok", Map.of("roomId", roomRequest)));
     }
     @DeleteMapping("/chats/{chatRoomId}")
     public ResponseEntity<?> leaveChatRoom(@PathVariable Long chatRoomId, @AuthenticationPrincipal CustomOAuth2User customOAuth2User){
