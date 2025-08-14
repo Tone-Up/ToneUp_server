@@ -5,6 +5,7 @@ import com.threeboys.toneup.common.domain.ImageType;
 import com.threeboys.toneup.common.domain.Images;
 import com.threeboys.toneup.common.repository.ImageRepository;
 import com.threeboys.toneup.common.service.FileService;
+import com.threeboys.toneup.follow.repository.UserFollowRepository;
 import com.threeboys.toneup.security.provider.ProviderType;
 import com.threeboys.toneup.user.domain.User;
 import com.threeboys.toneup.user.dto.ProfileResponse;
@@ -23,9 +24,11 @@ import org.springframework.stereotype.Service;
 public class Userservice {
     private final UserRepository userRepository;
     private final ImageRepository imageRepository;
+    private final UserFollowRepository followRepository;
     private final FileService fileService;
 
     private static final String DEFAULT_PROFILE_IMAGE ="images/DEFAULT_PROFILE_IMAGE";
+
     public UserEntity registerUser(String name, String nickname, String email, ProviderType providerType, String providerId){
         return userRepository.findByProviderAndProviderId(providerType,providerId)
 //                .map(userEntity -> {
@@ -62,8 +65,8 @@ public class Userservice {
 
     public ProfileResponse getProfile(Long userId) {
         UserEntity userEntity = userRepository.findById(userId).orElseThrow(()->new UserNotFoundException(userId));
-        int followerCount = 0 ;// followRepository.countByFolloweeId(userId);
-        int followingCount =0 ;// followRepository.countByFollowerId(userId);
+        Long followerCount = followRepository.countByFolloweeId(userId);
+        Long followingCount = followRepository.countByFollowerId(userId);
         String profileUrl = fileService.getPreSignedUrl(userEntity.getProfileImageId().getS3Key());
         return ProfileResponse.from(userEntity, profileUrl, followerCount, followingCount);
     }

@@ -8,4 +8,8 @@ import org.springframework.stereotype.Repository;
 public interface UserFollowRepository extends JpaRepository<UserFollow, Long> {
 
     public  void deleteByFollowerIdAndFolloweeId(Long userId, Long targetUserId);
+
+    Long countByFollowerId(Long userId);
+
+    Long countByFolloweeId(Long userId);
 }

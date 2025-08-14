@@ -2,6 +2,7 @@ package com.threeboys.toneup.user.service;
 
 import com.threeboys.toneup.common.domain.Images;
 import com.threeboys.toneup.common.service.FileService;
+import com.threeboys.toneup.follow.repository.UserFollowRepository;
 import com.threeboys.toneup.personalColor.domain.PersonalColor;
 import com.threeboys.toneup.personalColor.domain.PersonalColorType;
 import com.threeboys.toneup.security.provider.ProviderType;
@@ -34,6 +35,9 @@ public class UserServiceTest {
     private UserRepository userRepository;
 
     @Mock
+    private UserFollowRepository followRepository;
+
+    @Mock
     private FileService fileService;
 
     @Test
@@ -47,12 +51,13 @@ public class UserServiceTest {
         Long userId = 1L;
         String profileImageUrl = "http://test";
 
-        int followerCount = 0 ;// followRepository.countByFolloweeId(userId);
-        int followingCount =0 ;// followRepository.countByFollowerId(userId);
 
         when(fileService.getPreSignedUrl(images.getS3Key())).thenReturn(profileImageUrl);
         when(userRepository.findById(userId)).thenReturn(Optional.of(userEntity));
-        ProfileResponse expectProfileResponse = ProfileResponse.from(userEntity, profileImageUrl, followerCount, followingCount);
+        when(followRepository.countByFolloweeId(userId)).thenReturn(0L);
+        when(followRepository.countByFollowerId(userId)).thenReturn(0L);
+
+        ProfileResponse expectProfileResponse = ProfileResponse.from(userEntity, profileImageUrl, 0L, 0L);
         ProfileResponse profileResponse = userservice.getProfile(userId);
 
         assertEquals(expectProfileResponse, profileResponse);
