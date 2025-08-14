@@ -7,6 +7,7 @@ import com.threeboys.toneup.recommand.dto.ProductPageItemResponse;
 import com.threeboys.toneup.search.dto.AutoCompleteResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -17,7 +18,7 @@ public class SearchService {
     private final FileService fileService;
 
     private final RedisSearchService redisSearchService;
-
+    @Transactional(readOnly = true)
     public ProductPageItemResponse getSearchProduct(Long userId, String query, Long cursor, int limit){
 
         ProductPageItemResponse productPageItemResponse = productRepository.findProductWithImageAndIsLiked(userId, cursor, limit , null, false, query);
@@ -28,7 +29,7 @@ public class SearchService {
         }
         return productPageItemResponse;
     }
-
+    @Transactional(readOnly = true)
     public AutoCompleteResponse getAutoComplete(String keyword) {
         List<Suggestion<String>> suggestionList =  redisSearchService.autoComplete(keyword);
         return  AutoCompleteResponse.toDto(suggestionList);

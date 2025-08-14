@@ -5,9 +5,8 @@ import com.threeboys.toneup.common.domain.Images;
 import com.threeboys.toneup.common.repository.ImageRepository;
 import com.threeboys.toneup.common.service.FileService;
 import com.threeboys.toneup.feed.domain.Feed;
-import com.threeboys.toneup.feed.dto.FeedDetailResponse;
-import com.threeboys.toneup.feed.dto.FeedRequest;
-import com.threeboys.toneup.feed.dto.FeedResponse;
+import com.threeboys.toneup.feed.dto.*;
+import com.threeboys.toneup.feed.exception.FeedNotFoundException;
 import com.threeboys.toneup.feed.repository.FeedRepository;
 import com.threeboys.toneup.security.provider.ProviderType;
 import com.threeboys.toneup.user.entity.UserEntity;
@@ -26,6 +25,8 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
@@ -72,7 +73,7 @@ class FeedServiceTest {
     }
     @Test
     @DisplayName("피드 수정하기")
-    void changeFeed(){
+    void updateFeed(){
         // given
         Long feedId = 100L;
         Long userId = 1L;
@@ -131,11 +132,121 @@ class FeedServiceTest {
     @Test
     @DisplayName("피드 조회하기")
     void getFeed(){
+        // given
+        Long userId = 1L;
         Long feedId = 100L;
+
+        // FeedDetailDto mock 데이터
+        FeedDetailDto dto1 = new FeedDetailDto(feedId, "testFeedContent", userId, "testNickname", "testprofileS3Key", "feed-image-1", 0,false, false);
+        FeedDetailDto dto2 = new FeedDetailDto(feedId, "testFeedContent", userId, "testNickname", "testprofileS3Key", "feed-image-2", 0,false, false);
+
+        List<FeedDetailDto> mockDtoList = List.of(dto1, dto2);
+
+        // feedRepository mock 동작 정의
+        when(feedRepository.findFeedWithUserAndImageAndIsLiked(feedId, userId))
+                .thenReturn(mockDtoList);
+
+        // fileService mock 동작 정의
+        when(fileService.getPreSignedUrl("feed-image-1")).thenReturn("url-1");
+        when(fileService.getPreSignedUrl("feed-image-2")).thenReturn("url-2");
+        when(fileService.getPreSignedUrl("testprofileS3Key")).thenReturn("profile-url");
+
+        // when
+        FeedDetailResponse result = feedService.getFeed(userId, feedId);
+
+        // then
+        assertThat(result.getWriter().getProfileImageUrl()).isEqualTo("profile-url");
+        assertThat(result.getImageUrls()).containsExactly("url-1", "url-2");
+        assertThat(result.getContent()).isEqualTo("testFeedContent");
+
+        verify(feedRepository).findFeedWithUserAndImageAndIsLiked(feedId, userId);
+        verify(fileService).getPreSignedUrl("feed-image-1");
+        verify(fileService).getPreSignedUrl("feed-image-2");
+        verify(fileService).getPreSignedUrl("testprofileS3Key");
+    }
+
+    @Test
+    @DisplayName("최신순_피드_페이지네이션")
+    void getFeedPreviews() {
+        // given
+        Long userId = 1L;
+        Long cursor = null;
+        Long feedId = 100L;
+        boolean isMine = false;
+        int limit = 10;
+        String IMAGE_KEY_1 = "image-key-1";
+        String IMAGE_KEY_2 = "image-key-2";
+
+
+        FeedPreviewResponse preview1 = new FeedPreviewResponse(feedId,IMAGE_KEY_1, false);
+        FeedPreviewResponse preview2 = new FeedPreviewResponse(feedId,IMAGE_KEY_2, true);
+
+        FeedPageItemResponse mockResponse = new FeedPageItemResponse(List.of(preview1,preview2), 2L,false, 2L);
+
+        when(feedRepository.findFeedPreviewsWithImageAndIsLiked(userId, cursor, isMine, limit, false))
+                .thenReturn(mockResponse);
+        when(fileService.getPreSignedUrl(IMAGE_KEY_1)).thenReturn("url-1");
+        when(fileService.getPreSignedUrl(IMAGE_KEY_2)).thenReturn("url-2");
+
+        // when
+        FeedPageItemResponse result = feedService.getFeedPreviews(userId, cursor, isMine, limit);
+
+        // then
+        assertThat(result.getFeeds()).extracting(FeedPreviewResponse::getImageUrl)
+                .containsExactly("url-1", "url-2");
+
+        verify(feedRepository).findFeedPreviewsWithImageAndIsLiked(userId, cursor, isMine, limit, false);
+        verify(fileService).getPreSignedUrl(IMAGE_KEY_1);
+        verify(fileService).getPreSignedUrl(IMAGE_KEY_2);
+    }
+
+    @Test
+    @DisplayName("인기순_피드_페이지네이션")
+    void getRankingFeedPreviews() {
+        // given
+        Long userId = 1L;
+        Long feedId = 100L;
+        Long cursor = null;
+        int limit = 5;
+
+        String imageUrl1 = "rank-image-key-1";
+        String imageUrl2 = "rank-image-key-2";
+
+        FeedPreviewResponse preview1 = new FeedPreviewResponse(feedId, imageUrl1, false);
+        FeedPreviewResponse preview2 = new FeedPreviewResponse(feedId, imageUrl2, true);
+
+        FeedRankingPageItemResponse mockResponse = new FeedRankingPageItemResponse(List.of(preview1,preview2), 2L, false);
+
+        when(feedRepository.findRankingFeedPreviewsWithImageAndIsLiked(userId, cursor, limit))
+                .thenReturn(mockResponse);
+        when(fileService.getPreSignedUrl(imageUrl1)).thenReturn("rank-url-1");
+        when(fileService.getPreSignedUrl(imageUrl2)).thenReturn("rank-url-2");
+
+        // when
+        FeedRankingPageItemResponse result = feedService.getRankingFeedPreviews(userId, cursor, limit);
+
+        // then
+        assertThat(result.getFeeds()).extracting(FeedPreviewResponse::getImageUrl)
+                .containsExactly("rank-url-1", "rank-url-2");
+
+        verify(feedRepository).findRankingFeedPreviewsWithImageAndIsLiked(userId, cursor, limit);
+        verify(fileService).getPreSignedUrl(imageUrl1);
+        verify(fileService).getPreSignedUrl(imageUrl2);
+    }
+
+
+    @Test
+    void 피드_조회_예외(){
+        Long nonExistFeedId = 999L;
         Long userId = 1L;
 
-//        FeedDetailResponse feedResponse = feedService.getFeed(feedId);
+        // Mock: findById 호출 시 빈 Optional 반환
+        when(feedRepository.findFeedWithUserAndImageAndIsLiked(nonExistFeedId, userId)).thenReturn(List.of());
+        // 예외 검증
+        assertThrows(FeedNotFoundException.class,() -> feedService.getFeed(userId, nonExistFeedId));
 
-
+        // 호출 여부 검증
+        verify(feedRepository, times(1)).findFeedWithUserAndImageAndIsLiked(nonExistFeedId, userId);
     }
+
 }

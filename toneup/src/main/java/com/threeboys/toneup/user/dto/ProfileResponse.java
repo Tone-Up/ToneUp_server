@@ -12,11 +12,11 @@ public class ProfileResponse {
     private String personalColor;
     private String profileImageUrl;
     private String bio;
-    private int follower;
-    private int following;
+    private Long follower;
+    private Long following;
 
     @Builder(access = AccessLevel.PRIVATE)
-    public ProfileResponse(Long userId, String nickname, String personalColor, String profileImageUrl, String bio, int follower, int following) {
+    public ProfileResponse(Long userId, String nickname, String personalColor, String profileImageUrl, String bio, Long follower, Long following) {
         this.userId = userId;
         this.nickname = nickname;
         this.personalColor = personalColor;
@@ -26,7 +26,7 @@ public class ProfileResponse {
         this.following = following;
     }
 
-    public static ProfileResponse from(UserEntity userEntity, String profileImageUrl, int follower, int following) {
+    public static ProfileResponse from(UserEntity userEntity, String profileImageUrl, Long follower, Long following) {
         return ProfileResponse.builder()
                 .userId(userEntity.getId())
                 .nickname(userEntity.getNickname())

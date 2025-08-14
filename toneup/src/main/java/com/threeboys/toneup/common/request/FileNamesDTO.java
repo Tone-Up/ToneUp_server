@@ -1,10 +1,16 @@
 package com.threeboys.toneup.common.request;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.List;
 
 @Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class FileNamesDTO {
     private List<String> fileNames;
 }
