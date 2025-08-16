@@ -52,7 +52,7 @@ public class RoomController {
         Long roomId = Long.parseLong(message.getRoomId());
         String content = message.getContent();
         Long senderId = message.getSenderId();
-
+        boolean isPeerInRoom = chatMessagesService.checkPeerInRoom(roomId);
         // 상대방이 현재 이 방에 존재하면
         Collection<SocketIOClient> clients = client.getNamespace().getRoomOperations(roomId.toString()).getClients();
 
@@ -87,6 +87,7 @@ public class RoomController {
 
 
         int unreadCount = roomSize - connectedUserIds.size();
+        if(roomSize<=2&isPeerInRoom)unreadCount+=1;
         log.info("unreadCount : {}", unreadCount);
 
         //(방에 있는 유저들에게) 소켓 통신 메시지 전송

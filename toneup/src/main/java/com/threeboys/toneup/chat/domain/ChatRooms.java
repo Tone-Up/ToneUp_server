@@ -22,9 +22,16 @@ public class ChatRooms {
     private LocalDateTime lastSentAt;
     private String lastMessageContent;
 
+    private boolean isActive = true;
+
+
     public void updateLastMessage(LocalDateTime lastSentAt, String content) {
         this.lastSentAt = lastSentAt;
         this.lastMessageContent = content;
+    }
+
+    public void changeIsActive(boolean isActive) {
+        this.isActive = isActive;
     }
 
 //    public ChatRooms(Long roomId) {

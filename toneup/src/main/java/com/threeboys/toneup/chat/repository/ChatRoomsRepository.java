@@ -12,6 +12,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Set;
+
 @Repository
 public interface ChatRoomsRepository extends JpaRepository<ChatRooms, Long> {
 
@@ -38,6 +40,8 @@ public interface ChatRoomsRepository extends JpaRepository<ChatRooms, Long> {
 
     Page<ChatPreviewDto> findUserIdChatList(@Param("userId") Long userId, Pageable pageable);
 
+    @Query("select r from ChatRooms r, ChatMessages m where r.id = m.room.id and r.isActive = false and r.id in :userRoomIds and m.type = 'LEAVE' and m.senderId =:peerId order by m.sentAt desc")
+    List<ChatRooms> findByIsActiveFalseAndRoomsId(@Param("userRoomIds")Set<Long> userRoomIds, @Param("peerId")Long peerId, Pageable pageable);
 }
 
 
