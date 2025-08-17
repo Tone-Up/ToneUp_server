@@ -56,7 +56,9 @@ public class SocketIOConnectionListener {
                 log.info(client.getNamespace().getName() + " : client getNamespace 확인용////////////////////////////");
 
                 server.getNamespace("/chatmessage").getRoomOperations(roomId).sendEvent("joinRoom", "유저 : " + nickname + "이 입장했습니다.");
-//                client.getNamespace().getRoomOperations(roomId).sendEvent("joinRoom", "유저 : " + nickname + "이 입장했습니다.");
+                client.getNamespace().getRoomOperations(roomId).sendEvent("joinRoom", "유저 : " + nickname + "이 입장했습니다.");
+                server.getNamespace("").getRoomOperations(roomId).sendEvent("joinRoom", "유저 : " + nickname + "이 입장했습니다.");
+
 
                 log.info("client{}가 방 : {} 에 입장했습니다.", client.getSessionId(), roomId);
                 log.info("User {} joined room {} sessionId {}", userId, roomId, client.getSessionId());
