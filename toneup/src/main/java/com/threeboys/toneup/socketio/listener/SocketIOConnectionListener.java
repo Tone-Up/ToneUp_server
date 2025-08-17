@@ -1,5 +1,6 @@
 package com.threeboys.toneup.socketio.listener;
 
+import com.corundumstudio.socketio.SocketIONamespace;
 import com.corundumstudio.socketio.SocketIOServer;
 import com.corundumstudio.socketio.listener.ConnectListener;
 import com.corundumstudio.socketio.listener.DisconnectListener;
@@ -7,10 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @Component
 @Slf4j
@@ -55,13 +53,20 @@ public class SocketIOConnectionListener {
                 client.set("roomId", roomId);
                 client.set("nickname", nickname);
                 client.joinRoom(roomId); // 연결과 동시에 방 입장
-                client.getNamespace().getRoomOperations(roomId).sendEvent("joinRoom", "유저 : " + nickname + "이 입장했습니다.");
+                log.info(client.getNamespace().getName() + " : client getNamespace 확인용////////////////////////////");
+
+                server.getNamespace("/chatmessage").getRoomOperations(roomId).sendEvent("joinRoom", "유저 : " + nickname + "이 입장했습니다.");
+//                client.getNamespace().getRoomOperations(roomId).sendEvent("joinRoom", "유저 : " + nickname + "이 입장했습니다.");
+
                 log.info("client{}가 방 : {} 에 입장했습니다.", client.getSessionId(), roomId);
                 log.info("User {} joined room {} sessionId {}", userId, roomId, client.getSessionId());
             } else {
                 log.warn("Missing userId on connect");
             }
-
+            Collection<SocketIONamespace> namespaces = server.getAllNamespaces();
+            for (SocketIONamespace ns : namespaces) {
+                log.info("Namespace: '{}'", ns.getName());
+            }
         };
     }
 
@@ -74,6 +79,7 @@ public class SocketIOConnectionListener {
             Set<String> rooms =  client.getAllRooms();
             String roomId = String.valueOf(rooms.stream().findFirst());
             client.leaveRoom(roomId);
+
 //            String nickname = client.getHandshakeData().getSingleUrlParam("nickname");
 //            client.getNamespace().getRoomOperations(roomId).sendEvent("leaveRoom", "유저 : " + nickname + "이 나갔습니다.");
 
