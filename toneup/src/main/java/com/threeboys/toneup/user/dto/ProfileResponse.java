@@ -1,5 +1,7 @@
 package com.threeboys.toneup.user.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.threeboys.toneup.follow.dto.FollowResponse;
 import com.threeboys.toneup.user.entity.UserEntity;
 import lombok.*;
 
@@ -14,9 +16,15 @@ public class ProfileResponse {
     private String bio;
     private Long follower;
     private Long following;
+    @JsonProperty("isFollowing")
+    private boolean isFollowing;
+    @JsonProperty("isFollower")
+    private boolean isFollower;
+
+//    private FollowResponse followResponse;
 
     @Builder(access = AccessLevel.PRIVATE)
-    public ProfileResponse(Long userId, String nickname, String personalColor, String profileImageUrl, String bio, Long follower, Long following) {
+    public ProfileResponse(Long userId, String nickname, String personalColor, String profileImageUrl, String bio, Long follower, Long following, boolean isFollower, boolean isFollowing) {
         this.userId = userId;
         this.nickname = nickname;
         this.personalColor = personalColor;
@@ -24,9 +32,12 @@ public class ProfileResponse {
         this.bio = bio;
         this.follower = follower;
         this.following = following;
+        this.isFollower = isFollower;
+        this.isFollowing = isFollowing;
+
     }
 
-    public static ProfileResponse from(UserEntity userEntity, String profileImageUrl, Long follower, Long following) {
+    public static ProfileResponse from(UserEntity userEntity, String profileImageUrl, Long follower, Long following, boolean isFollower, boolean isFollowing) {
         return ProfileResponse.builder()
                 .userId(userEntity.getId())
                 .nickname(userEntity.getNickname())
@@ -34,6 +45,8 @@ public class ProfileResponse {
                 .bio(userEntity.getBio())
                 .follower(follower)
                 .following(following)
+                .isFollowing(isFollowing)
+                .isFollower(isFollower)
                 .profileImageUrl(profileImageUrl)
                 .build();
     }

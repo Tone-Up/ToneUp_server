@@ -7,6 +7,7 @@ import com.threeboys.toneup.socketio.dto.ChatListEventResponse;
 import com.threeboys.toneup.socketio.annotation.SocketController;
 import com.threeboys.toneup.socketio.annotation.SocketMapping;
 import com.threeboys.toneup.socketio.dto.ChatMessage;
+import com.threeboys.toneup.socketio.dto.ChatMessageResponse;
 import com.threeboys.toneup.socketio.dto.RoomRequest;
 import com.threeboys.toneup.socketio.service.FcmService;
 import lombok.RequiredArgsConstructor;
@@ -87,12 +88,13 @@ public class RoomController {
 
 
         int unreadCount = roomSize - connectedUserIds.size();
-        if(roomSize<=2&isPeerInRoom)unreadCount+=1;
+//        if(roomSize<=2&isPeerInRoom)unreadCount+=1;
         log.info("unreadCount : {}", unreadCount);
 
         //(방에 있는 유저들에게) 소켓 통신 메시지 전송
+        ChatMessageResponse chatMessageResponse = new ChatMessageResponse(message, unreadCount);
         client.getNamespace().getRoomOperations(roomId.toString())
-                .sendEvent("chat", message);
+                .sendEvent("chat", chatMessageResponse);
 
         if(unreadCount ==0){
             //unread_count 증가 없이(unread_count default 0으로 설정) db 저장 후

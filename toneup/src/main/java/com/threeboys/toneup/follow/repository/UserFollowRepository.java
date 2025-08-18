@@ -4,12 +4,18 @@ import com.threeboys.toneup.follow.domain.UserFollow;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface UserFollowRepository extends JpaRepository<UserFollow, Long> {
 
     public  void deleteByFollowerIdAndFolloweeId(Long userId, Long targetUserId);
 
+    boolean existsByFollowerIdAndFolloweeId(Long userId, Long targetUserId);
+
     Long countByFollowerId(Long userId);
 
     Long countByFolloweeId(Long userId);
+
+    Optional<UserFollow> findByFollowerIdAndFolloweeId(Long userId, Long targetUserId);
 }

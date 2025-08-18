@@ -1,6 +1,5 @@
 package com.threeboys.toneup.user.service;
 
-import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.threeboys.toneup.common.domain.ImageType;
 import com.threeboys.toneup.common.domain.Images;
 import com.threeboys.toneup.common.repository.ImageRepository;
@@ -14,9 +13,9 @@ import com.threeboys.toneup.user.entity.UserEntity;
 import com.threeboys.toneup.user.exception.DuplicateNicknameException;
 import com.threeboys.toneup.user.exception.UserNotFoundException;
 import com.threeboys.toneup.user.repository.UserRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -63,12 +62,15 @@ public class Userservice {
         return user.getId() != null;
     }
 
-    public ProfileResponse getProfile(Long userId) {
-        UserEntity userEntity = userRepository.findById(userId).orElseThrow(()->new UserNotFoundException(userId));
-        Long followerCount = followRepository.countByFolloweeId(userId);
-        Long followingCount = followRepository.countByFollowerId(userId);
-        String profileUrl = fileService.getPreSignedUrl(userEntity.getProfileImageId().getS3Key());
-        return ProfileResponse.from(userEntity, profileUrl, followerCount, followingCount);
+    public ProfileResponse getProfile(Long userId, Long targetId) {
+        UserEntity targetEntity = userRepository.findById(targetId).orElseThrow(()->new UserNotFoundException(userId));
+        Long followerCount = followRepository.countByFolloweeId(targetId);
+        Long followingCount = followRepository.countByFollowerId(targetId);
+        boolean isFollowing = followRepository.existsByFollowerIdAndFolloweeId(userId, targetId);
+        boolean isFollower = followRepository.existsByFollowerIdAndFolloweeId(targetId, userId);
+
+        String profileUrl = fileService.getPreSignedUrl(targetEntity.getProfileImageId().getS3Key());
+        return ProfileResponse.from(targetEntity, profileUrl, followerCount, followingCount, isFollower,isFollowing);
     }
 
     public void updateProfile(Long userId, UpdateProfileRequest updateProfileRequest) {

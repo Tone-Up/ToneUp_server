@@ -23,12 +23,13 @@ public class UserController {
     @GetMapping("/me")
     public ResponseEntity<?> getMyProfile(@AuthenticationPrincipal CustomOAuth2User customOAuth2User){
         Long userId = customOAuth2User.getId();
-        ProfileResponse profileResponse = userservice.getProfile(userId);
+        ProfileResponse profileResponse = userservice.getProfile(userId, userId);
         return ResponseEntity.ok(new StandardResponse<>(true, 0, "Ok", profileResponse));
     }
     @GetMapping("/{userId}")
-    public ResponseEntity<?> getUserProfile(@PathVariable Long userId){
-        ProfileResponse profileResponse = userservice.getProfile(userId);
+    public ResponseEntity<?> getUserProfile(@PathVariable Long userId, @AuthenticationPrincipal CustomOAuth2User customOAuth2User){
+        Long myId = customOAuth2User.getId();
+        ProfileResponse profileResponse = userservice.getProfile(myId, userId);
         return ResponseEntity.ok(new StandardResponse<>(true, 0, "Ok", profileResponse));
     }
 

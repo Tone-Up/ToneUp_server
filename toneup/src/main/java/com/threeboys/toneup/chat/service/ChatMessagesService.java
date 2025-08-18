@@ -189,7 +189,7 @@ public class ChatMessagesService {
         for (ChatMessages value : chatMessagesList) {
             boolean isRead = (value.getUnreadCount() == 0);
             boolean isMine = Objects.equals(userId, value.getSenderId());
-            messages.add(new ChatDetailResponse.MessageDetailDto(value.getId(), value.getSenderId(), value.getContent(), value.getSentAt(), isRead, isMine));
+            messages.add(new ChatDetailResponse.MessageDetailDto(value.getId(), value.getSenderId(), value.getContent(), value.getSentAt(), isRead, isMine, value.getType()));
         }
 
         chatDetailResponse.setMessages(messages);

@@ -2,6 +2,7 @@ package com.threeboys.toneup.chat.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.threeboys.toneup.chat.domain.MessageType;
 import lombok.*;
 
 import lombok.Data;
@@ -32,5 +33,6 @@ public class ChatDetailResponse {
         private boolean isRead;
         @JsonProperty("isMine")
         private boolean isMine;
+        private MessageType contentType;
     }
 }
