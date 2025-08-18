@@ -7,10 +7,10 @@ import com.threeboys.toneup.socketio.repository.DeviceTokenRepository;
 import com.threeboys.toneup.user.entity.UserEntity;
 import com.threeboys.toneup.user.exception.UserNotFoundException;
 import com.threeboys.toneup.user.repository.UserRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;

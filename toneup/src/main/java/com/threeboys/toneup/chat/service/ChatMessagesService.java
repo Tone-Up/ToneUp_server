@@ -17,13 +17,13 @@ import com.threeboys.toneup.socketio.dto.ChatMessage;
 import com.threeboys.toneup.user.entity.UserEntity;
 import com.threeboys.toneup.user.exception.UserNotFoundException;
 import com.threeboys.toneup.user.repository.UserRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

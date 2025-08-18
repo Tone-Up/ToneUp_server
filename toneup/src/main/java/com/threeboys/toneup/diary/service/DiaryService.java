@@ -13,9 +13,9 @@ import com.threeboys.toneup.feed.dto.FeedResponse;
 import com.threeboys.toneup.feed.exception.FeedNotFoundException;
 import com.threeboys.toneup.user.entity.UserEntity;
 import com.threeboys.toneup.user.repository.UserRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
