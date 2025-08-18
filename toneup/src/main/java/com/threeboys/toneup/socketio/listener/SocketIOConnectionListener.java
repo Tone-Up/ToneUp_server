@@ -4,6 +4,7 @@ import com.corundumstudio.socketio.SocketIONamespace;
 import com.corundumstudio.socketio.SocketIOServer;
 import com.corundumstudio.socketio.listener.ConnectListener;
 import com.corundumstudio.socketio.listener.DisconnectListener;
+import com.threeboys.toneup.socketio.dto.JoinRoomResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -46,16 +47,16 @@ public class SocketIOConnectionListener {
 
             String userId = client.getHandshakeData().getSingleUrlParam("userId");
             String roomId = client.getHandshakeData().getSingleUrlParam("roomId");
-            String nickname = client.getHandshakeData().getSingleUrlParam("nickname");
+//            String nickname = client.getHandshakeData().getSingleUrlParam("nickname");
 
             if (userId != null && roomId != null) {
                 client.set("userId", userId);
                 client.set("roomId", roomId);
-                client.set("nickname", nickname);
+//                client.set("nickname", nickname);
                 client.joinRoom(roomId); // 연결과 동시에 방 입장
                 log.info(client.getNamespace().getName() + " : client getNamespace 확인용////////////////////////////");
-
-                client.getNamespace().getRoomOperations(roomId).sendEvent("joinRoom", "유저 : " + nickname + "이 입장했습니다.");
+                JoinRoomResponse joinRoomResponse = new JoinRoomResponse(userId,roomId);
+                client.getNamespace().getRoomOperations(roomId).sendEvent("joinRoom", joinRoomResponse);
 //                server.getNamespace("").getRoomOperations(roomId).sendEvent("joinRoom", "유저 : " + nickname + "이 입장했습니다.");
 
 

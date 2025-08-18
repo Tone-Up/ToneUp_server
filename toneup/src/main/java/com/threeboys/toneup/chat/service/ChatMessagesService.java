@@ -169,6 +169,7 @@ public class ChatMessagesService {
     }
     @Transactional
     public ChatDetailResponse getChatDetail(Long userId, Long chatRoomId, LocalDateTime lastSentAt) {
+        if(lastSentAt==null) lastSentAt = LocalDateTime.parse("2010-01-11T00:00:00");
         List<ChatMessages> chatMessagesList = chatMessagesRepository.findByRoomIdAndSentAtGreaterThan(chatRoomId, lastSentAt);
 
         List<ChatRoomUser> chatRoomUserList = chatRoomUserRepository.findByChatRoomId(chatRoomId);
@@ -180,7 +181,7 @@ public class ChatMessagesService {
         ChatDetailResponse chatDetailResponse = new ChatDetailResponse();
         List<ChatDetailResponse.MessageDetailDto> messages = new ArrayList<>();
 
-        //unreadCount -1 더티 체킹으로
+        //unreadCount -1 더티 체킹으로 이거는 지금 1대1 채팅시에만 가능한 구조임 단체 채팅되는 순간 내가 이전에 읽은 적이 있는지 확인할 로직이 더 있어야함
         chatMessagesList.stream().forEach(chatMessages -> {
             int unreadCount = chatMessages.getUnreadCount();
             if(unreadCount>0&& !Objects.equals(chatMessages.getSenderId(), userId)) chatMessages.updateUnreadCnt(unreadCount-1);
