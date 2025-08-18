@@ -56,9 +56,9 @@ public class UserServiceTest {
         when(userRepository.findById(userId)).thenReturn(Optional.of(userEntity));
         when(followRepository.countByFolloweeId(userId)).thenReturn(0L);
         when(followRepository.countByFollowerId(userId)).thenReturn(0L);
-
-        ProfileResponse expectProfileResponse = ProfileResponse.from(userEntity, profileImageUrl, 0L, 0L);
-        ProfileResponse profileResponse = userservice.getProfile(userId);
+       when(followRepository.existsByFollowerIdAndFolloweeId(userId, userId)).thenReturn(false);
+        ProfileResponse expectProfileResponse = ProfileResponse.from(userEntity, profileImageUrl, 0L, 0L, false, false);
+        ProfileResponse profileResponse = userservice.getProfile(userId, userId);
 
         assertEquals(expectProfileResponse, profileResponse);
     }
