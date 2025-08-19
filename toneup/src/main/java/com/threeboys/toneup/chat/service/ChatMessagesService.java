@@ -171,6 +171,7 @@ public class ChatMessagesService {
     public ChatDetailResponse getChatDetail(Long userId, Long chatRoomId, LocalDateTime lastSentAt) {
         if(lastSentAt==null) lastSentAt = LocalDateTime.parse("2010-01-11T00:00:00");
         List<ChatMessages> chatMessagesList = chatMessagesRepository.findByRoomIdAndSentAtGreaterThan(chatRoomId, lastSentAt);
+        chatMessagesList.removeFirst();
 
         List<ChatRoomUser> chatRoomUserList = chatRoomUserRepository.findByChatRoomId(chatRoomId);
         List<UserEntity> partner = chatRoomUserList.stream()

@@ -2,7 +2,9 @@ package com.threeboys.toneup.socketio.controller;
 
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIOServer;
+import com.threeboys.toneup.chat.domain.MessageType;
 import com.threeboys.toneup.chat.service.ChatMessagesService;
+import com.threeboys.toneup.common.service.FileService;
 import com.threeboys.toneup.socketio.dto.ChatListEventResponse;
 import com.threeboys.toneup.socketio.annotation.SocketController;
 import com.threeboys.toneup.socketio.annotation.SocketMapping;
@@ -24,6 +26,8 @@ public class RoomController {
 
     private final ChatMessagesService chatMessagesService;
     private final FcmService fcmService;
+    private final FileService fileService;
+
 
 //    @SocketMapping(endpoint = "joinRoom", requestCls = RoomRequest.class)
 //    public void joinRoom(SocketIOClient client, RoomRequest request) {
@@ -53,6 +57,7 @@ public class RoomController {
         Long roomId = Long.parseLong(message.getRoomId());
         String content = message.getContent();
         Long senderId = message.getSenderId();
+        if(message.getType().equals(MessageType.IMAGE)) message.setContent(fileService.getPreSignedUrl(message.getContent()));
         boolean isPeerInRoom = chatMessagesService.checkPeerInRoom(roomId);
         // 상대방이 현재 이 방에 존재하면
         Collection<SocketIOClient> clients = client.getNamespace().getRoomOperations(roomId.toString()).getClients();
