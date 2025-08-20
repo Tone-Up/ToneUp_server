@@ -76,18 +76,25 @@ public class FcmService {
 
     @Transactional
     public void activateTokenForUser(Long userId, String fcmToken) {
-        List<DeviceToken> userTokens = deviceTokenRepository.findByUserId(userId);
+        if(deviceTokenRepository.existsByToken(fcmToken)){
+            List<DeviceToken> userTokens = deviceTokenRepository.findByUserId(userId);
 
-        for (DeviceToken fcm : userTokens) {
-            if (fcm.getToken().equals(fcmToken)) {
-                if (!fcm.isActive()) {
-                    fcm.changeIsActive(true);
-                }
-            } else {
-                if (fcm.isActive()) {
-                    fcm.changeIsActive(false);
+            for (DeviceToken fcm : userTokens) {
+                if (fcm.getToken().equals(fcmToken)) {
+                    if (!fcm.isActive()) {
+                        fcm.changeIsActive(true);
+                    }
+                } else {
+                    if (fcm.isActive()) {
+                        fcm.changeIsActive(false);
+                    }
                 }
             }
+        }else{
+            UserEntity user = userRepository.getReferenceById(userId);
+
+            DeviceToken deviceToken = new DeviceToken(user,fcmToken,"PHONE", true);
+            deviceTokenRepository.save(deviceToken);
         }
     }
 }

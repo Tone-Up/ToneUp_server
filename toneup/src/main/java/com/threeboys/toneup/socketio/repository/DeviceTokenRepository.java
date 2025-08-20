@@ -17,5 +17,7 @@ public interface DeviceTokenRepository extends JpaRepository<DeviceToken, Long> 
     @Query("Select d.token From DeviceToken d where d.user.id in :userIds and d.isActive = true")
     List<String> findActiveTokensByUserIds(Set<Long> userIds);
 
+    boolean existsByToken(String token);
+
     List<DeviceToken> findByUserId(Long userId);
 }
