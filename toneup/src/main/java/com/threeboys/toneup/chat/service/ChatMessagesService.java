@@ -191,7 +191,19 @@ public class ChatMessagesService {
         for (ChatMessages value : chatMessagesList) {
             boolean isRead = (value.getUnreadCount() == 0);
             boolean isMine = Objects.equals(userId, value.getSenderId());
-            messages.add(new ChatDetailResponse.MessageDetailDto(value.getId(), value.getSenderId(), value.getContent(), value.getSentAt(), isRead, isMine, value.getType()));
+
+            String content = value.getContent();
+            if(value.getType().equals(MessageType.IMAGE)) {
+                List<String> list = Arrays.stream(content.split(","))
+                        .map(String::trim) // 공백 제거
+                        .toList();
+                content = list.stream()
+                        .map(fileService::getPreSignedUrl)
+                        .collect(Collectors.joining(","));
+
+            }
+
+            messages.add(new ChatDetailResponse.MessageDetailDto(value.getId(), value.getSenderId(), content, value.getSentAt(), isRead, isMine, value.getType()));
         }
 
         chatDetailResponse.setMessages(messages);

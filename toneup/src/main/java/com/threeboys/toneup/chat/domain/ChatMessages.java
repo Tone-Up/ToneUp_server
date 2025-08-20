@@ -25,6 +25,7 @@ public class ChatMessages {
 
     private Long senderId;
 
+    @Column(columnDefinition = "LONGTEXT")
     private String content;
 
     @Enumerated(EnumType.STRING)

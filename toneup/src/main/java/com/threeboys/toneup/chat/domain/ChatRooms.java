@@ -1,10 +1,7 @@
 package com.threeboys.toneup.chat.domain;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -20,6 +17,7 @@ public class ChatRooms {
 //    private Long LastMessageId;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime lastSentAt;
+    @Column(columnDefinition = "LONGTEXT")
     private String lastMessageContent;
 
     private boolean isActive = true;

@@ -15,7 +15,9 @@ import com.threeboys.toneup.socketio.service.FcmService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -55,9 +57,9 @@ public class RoomController {
     @SocketMapping(endpoint = "chat", requestCls = ChatMessage.class)
     public void chat(SocketIOClient client, ChatMessage message) {
         Long roomId = Long.parseLong(message.getRoomId());
-        String content = message.getContent();
         Long senderId = message.getSenderId();
-        if(message.getType().equals(MessageType.IMAGE)) message.setContent(fileService.getPreSignedUrl(message.getContent()));
+
+
         boolean isPeerInRoom = chatMessagesService.checkPeerInRoom(roomId);
         // 상대방이 현재 이 방에 존재하면
         Collection<SocketIOClient> clients = client.getNamespace().getRoomOperations(roomId.toString()).getClients();
@@ -97,9 +99,27 @@ public class RoomController {
         log.info("unreadCount : {}", unreadCount);
 
         //(방에 있는 유저들에게) 소켓 통신 메시지 전송
-        ChatMessageResponse chatMessageResponse = new ChatMessageResponse(message, unreadCount);
+        ChatMessageResponse chatMessageResponse;
+        if(message.getType().equals(MessageType.IMAGE)) {
+            List<String> list = Arrays.stream(message.getContent().split(","))
+                    .map(String::trim) // 공백 제거
+                    .toList();
+            String content = list.stream()
+                    .map(fileService::getPreSignedUrl)
+                    .collect(Collectors.joining(","));
+            ChatMessage imageMessage = new ChatMessage();
+            imageMessage.setRoomId(message.getRoomId());
+            imageMessage.setType(message.getType());
+            imageMessage.setContent(content);
+            imageMessage.setSenderId(message.getSenderId());
+            chatMessageResponse = new ChatMessageResponse(imageMessage, unreadCount);
+
+        }else{
+            chatMessageResponse = new ChatMessageResponse(message, unreadCount);
+        }
         client.getNamespace().getRoomOperations(roomId.toString())
                 .sendEvent("chat", chatMessageResponse);
+
 
         if(unreadCount ==0){
             //unread_count 증가 없이(unread_count default 0으로 설정) db 저장 후
@@ -126,6 +146,7 @@ public class RoomController {
             //방 유저이지만 소켓 연결 안된 유저들에게 fcm 푸시 알림 전송  추후 단체 톡방 위해 MulticastMessage 방식으로 알림 전송
             fcmService.sendMessage(message, notConnectedUserIds);
         }
+
 
     }
 
