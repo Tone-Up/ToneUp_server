@@ -2,13 +2,17 @@ package com.threeboys.toneup.chatbot.dto;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.lang.Nullable;
 import org.springframework.web.multipart.MultipartFile;
 
 @Data
 @NoArgsConstructor
 public class ChatBotRequest {
     private BotMessageType botMessageType;
+    @Nullable
     private MultipartFile imageFile;       // 업로드된 이미지 파일
+    @Nullable
+    private String content;
 
     /**
      * MultipartFile을 Base64 문자열로 변환

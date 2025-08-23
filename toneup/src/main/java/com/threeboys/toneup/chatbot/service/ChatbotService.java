@@ -13,7 +13,10 @@ import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.ai.content.Media;
+import org.springframework.ai.document.Document;
 import org.springframework.ai.openai.*;
+import org.springframework.ai.vectorstore.SearchRequest;
+import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
@@ -24,6 +27,7 @@ import reactor.core.publisher.Flux;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -34,11 +38,13 @@ public class ChatbotService {
     private final OpenAiAudioSpeechModel openAiAudioSpeechModel;
     private final OpenAiAudioTranscriptionModel openAiAudioTranscriptionModel;
     private final UserRepository userRepository;
+    private final VectorStore vectorStore;
 //    private final ChatClient chatClient;
 
     public String generateStream(ChatBotRequest chatbotRequest, Long userId) throws IOException {
         UserEntity user = userRepository.findById(userId).orElseThrow(() ->new UserNotFoundException(userId));
         String personalColor = user.getPersonalColor().getPersonalColorType().toString();
+        ChatClient chatClient = ChatClient.create(openAiChatModel);
 
         if (chatbotRequest.getBotMessageType().name().equals("EVALUATE_CODI")) {
 
@@ -118,7 +124,6 @@ public class ChatbotService {
                     .model("gpt-4o-mini")
                     .temperature(0.7)
                     .build();
-            ChatClient chatClient = ChatClient.create(openAiChatModel);
 //            PromptTemplate
             Prompt prompt = new Prompt(List.of(systemMessage, userMessage), options);
 //            chatClient.prompt().user((spec) -> spec.text(prompt).media(
@@ -139,6 +144,23 @@ public class ChatbotService {
 //                        return token;
 //                    });
 //            return chatClient.prompt(prompt).stream().content().map()chatResponse()chatClientResponse();
+        }else if(chatbotRequest.getBotMessageType().name().equals("QnA")&chatbotRequest.getContent()!=null){
+            //1. 유사도 검색
+            List<Document> documents = vectorStore.similaritySearch(SearchRequest.builder()
+                            .query(chatbotRequest.getContent())
+                            .topK(5)
+                    .build());
+
+            // 2. 검색된 문서들을 context로 묶기
+            String context = documents.stream()
+                    .map(Document::getText)
+                    .collect(Collectors.joining("\n"));
+
+            // 3. ChatClient 호출
+            return chatClient.prompt()
+                    .user("다음 정보를 기반으로 답해: \n" + context + "\n\n질문: " + chatbotRequest.getContent())
+                    .call()
+                    .content();
         }
         return null;
     }
