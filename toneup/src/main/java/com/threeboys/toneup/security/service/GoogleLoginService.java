@@ -60,6 +60,8 @@ public class GoogleLoginService implements OAuthLoginService{
             ProviderType providerType = ProviderType.valueOf(request.getProvider().toUpperCase());
             String providerId =  payload.getSubject();
             String nickname = name+"_"+providerId;
+            String fcmToken = request.getFcmToken();
+
 
             // 3. 회원 가입 또는 로그인 처리
             UserEntity socialUser = userservice.registerUser(name,nickname, email, providerType, providerId);
@@ -68,7 +70,6 @@ public class GoogleLoginService implements OAuthLoginService{
             String accessToken = jwtUtil.createJwt(socialUser.getId(), socialUser.getNickname(), personalColorType, socialUser.getRole(), JwtConstants.ACCESS_TOKEN_EXPIRATION);
             String refreshToken = jwtUtil.createRefreshJwt(socialUser.getId(), JwtConstants.REFRESH_TOKEN_EXPIRATION);
 
-            String fcmToken = request.getFcmToken();
             Long userId = socialUser.getId();
             fcmService.activateTokenForUser(userId, fcmToken);
 
