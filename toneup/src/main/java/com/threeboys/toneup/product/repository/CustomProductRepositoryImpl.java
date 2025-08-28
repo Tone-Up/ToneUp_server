@@ -7,7 +7,9 @@ import com.threeboys.toneup.common.domain.QImages;
 import com.threeboys.toneup.feed.dto.FeedPreviewResponse;
 import com.threeboys.toneup.like.domain.QProductsLike;
 import com.threeboys.toneup.product.domain.QProduct;
+import com.threeboys.toneup.product.dto.ProductEmbeddingRequest;
 import com.threeboys.toneup.product.dto.ProductPreviewResponse;
+import com.threeboys.toneup.product.dto.QProductEmbeddingRequest;
 import com.threeboys.toneup.product.dto.QProductPreviewResponse;
 import com.threeboys.toneup.recommand.dto.ProductPageItemResponse;
 import lombok.RequiredArgsConstructor;
@@ -91,5 +93,17 @@ public class CustomProductRepositoryImpl implements CustomProductRepository{
 
         //추천 상품 페이지네이션인 경우 레디스에서 확인해서 (nextCursor, hasNext) 넣어주기
         return productPageItemResponse;
+    }
+
+    @Override
+    public List<ProductEmbeddingRequest> findAllEmbeddingData() {
+        QProduct product = QProduct.product;
+        return jpaQueryFactory
+                .select(new QProductEmbeddingRequest(
+                        product.id,
+                        product.color,
+                        product.sex,
+                        product.type
+                )).from(product).fetch();
     }
 }

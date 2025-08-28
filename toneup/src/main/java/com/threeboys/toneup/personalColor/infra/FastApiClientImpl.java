@@ -3,10 +3,13 @@ package com.threeboys.toneup.personalColor.infra;
 import com.threeboys.toneup.personalColor.domain.PersonalColor;
 import com.threeboys.toneup.personalColor.dto.PersonalColorAnalyzeRequest;
 import com.threeboys.toneup.personalColor.dto.PersonalColorAnalyzeResponse;
+import com.threeboys.toneup.product.dto.ProductEmbeddingRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.embedding.EmbeddingResponse;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.*;
 import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.util.LinkedMultiValueMap;
@@ -19,7 +22,9 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -30,6 +35,7 @@ import java.util.concurrent.Semaphore;
 public class FastApiClientImpl implements FastApiClient{
     private final RestTemplate restTemplate;
     private final String fastApiUrl;
+
     @Override
     public PersonalColorAnalyzeResponse requestPersonalColorUpdate(PersonalColorAnalyzeRequest input) {
         try {
@@ -269,6 +275,19 @@ public class FastApiClientImpl implements FastApiClient{
                 .body(BodyInserters.fromMultipartData(builder.build()))
                 .retrieve()
                 .bodyToMono(PersonalColorAnalyzeResponse.class);
+    }
+
+    @Override
+    public Resource downloadEmbeddingFile(List<ProductEmbeddingRequest> request) {
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+
+        return restClient.post()
+                .uri(fastApiUrl+"/embed")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(request)
+                .retrieve()
+                .body(Resource.class);
+
     }
 
 }
