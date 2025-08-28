@@ -10,6 +10,7 @@ import org.springframework.ai.openai.OpenAiEmbeddingModel;
 import org.springframework.ai.openai.api.OpenAiApi;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.redis.RedisVectorStore;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -61,14 +62,23 @@ public class RedisSearchConfig {
                 .build();
         return new JedisPooled(new HostAndPort(masterHost, masterPort), config);
     }
+    @Bean
+    public VectorStore openClipVectorStore(JedisPooled jedisPooled, @Qualifier("openClipEmbeddingModel") EmbeddingModel embeddingModel) {
+        return RedisVectorStore.builder(jedisPooled, embeddingModel) // openClip 더미 모델
+                .indexName("spring-ai-index-openclip")
+                .prefix("productEmbedding")
+                .initializeSchema(true)
+                .build();
+    }
 
     @Bean
-    public VectorStore vectorStore(JedisPooled jedisPooled, EmbeddingModel embeddingModel) {
+    public VectorStore openAiVectorStore(JedisPooled jedisPooled,  @Qualifier("openAiEmbeddingModel") EmbeddingModel embeddingModel) {
 
         return  RedisVectorStore.builder(jedisPooled, embeddingModel)
                 .initializeSchema(true) // ← 여기 꼭 true
                 .build();
     }
+
 
 //    @Bean
 //    public EmbeddingModel embeddingModel() {
