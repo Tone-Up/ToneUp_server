@@ -18,9 +18,9 @@ public class ChatbotController {
     private final ChatbotService chatbotService;
 
     @PostMapping("/chatbot")
-    public String streamChat(@ModelAttribute ChatBotRequest chatbotRequest, @AuthenticationPrincipal CustomOAuth2User customOAuth2User) throws IOException {
+    public Object streamChat(@ModelAttribute ChatBotRequest chatbotRequest, @AuthenticationPrincipal CustomOAuth2User customOAuth2User) throws IOException {
         Long userId = customOAuth2User.getId();
-        String answer = chatbotService.generateStream(chatbotRequest, userId);
+        Object answer = chatbotService.generateStream(chatbotRequest, userId);
         return  answer;
     }
 }
