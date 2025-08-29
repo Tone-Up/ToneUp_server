@@ -10,7 +10,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 @Slf4j
 @Configuration
@@ -23,13 +25,22 @@ public class FirebaseConfig {
     @Bean
     public FirebaseApp firebaseApp() {
         try {
+//            InputStream serviceAccount =new ClassPathResource(SERVICE_KEY_PATH).getInputStream();
+
+            FileInputStream serviceAccount =
+                    new FileInputStream("src/main/resources/firebase/service-key.json");
+
             FirebaseOptions options = FirebaseOptions.builder()
                     .setCredentials(
-                            GoogleCredentials.fromStream(new ClassPathResource(SERVICE_KEY_PATH).getInputStream())
+                            GoogleCredentials.fromStream(serviceAccount)
                     )
                     .build();
 
             log.info("Successfully initialized firebase app!!");
+            System.out.println(options.getProjectId());
+            System.out.println(options.getServiceAccountId());
+            System.out.println(options.getHttpTransport());
+
             return FirebaseApp.initializeApp(options);
 
         } catch (IOException exception) {
