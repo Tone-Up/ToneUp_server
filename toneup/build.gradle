@@ -91,6 +91,7 @@ dependencies {
 	//spring ai
 	implementation 'org.springframework.ai:spring-ai-starter-model-openai:1.0.1'
 	implementation 'org.springframework.ai:spring-ai-starter-vector-store-redis:1.0.1'
+	implementation 'org.springframework.ai:spring-ai-starter-model-chat-memory-repository-jdbc:1.0.1'
 
 
 //	implementation 'com.spring.ai:spring-ai-client:1.0.1' // Spring AI SDK
