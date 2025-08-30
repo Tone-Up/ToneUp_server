@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.threeboys.toneup.chatbot.dto.BotMessageType;
+import com.threeboys.toneup.chatbot.dto.ChatBotNotRocommandCodiResponse;
 import com.threeboys.toneup.chatbot.dto.ChatBotRecommandCodiResponse;
 import com.threeboys.toneup.chatbot.dto.ChatBotRequest;
 import com.threeboys.toneup.common.domain.ImageType;
@@ -23,6 +24,9 @@ import lombok.RequiredArgsConstructor;
 import org.redisson.client.RedisClient;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.ChatClientResponse;
+import org.springframework.ai.chat.memory.ChatMemory;
+import org.springframework.ai.chat.memory.ChatMemoryRepository;
+import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
@@ -70,6 +74,7 @@ public class ChatbotService {
     private final ProductsLikeRepository productsLikeRepository;
     private final ProductRepository productRepository;
     private final ImageRepository imageRepository;
+    private final ChatMemoryRepository chatMemoryRepository;
     private final FileService fileService;
 
 //    private final VectorStore vectorStore;
@@ -82,7 +87,7 @@ public class ChatbotService {
     private final List<MetadataField> metadataFields = new ArrayList<>();
     private final FilterExpressionConverter filterExpressionConverter = new RedisFilterExpressionConverter(metadataFields);
 
-    public ChatbotService(OpenAiChatModel openAiChatModel, OpenAiEmbeddingModel openAiEmbeddingModel, OpenAiImageModel openAiImageModel, OpenAiAudioSpeechModel openAiAudioSpeechModel, OpenAiAudioTranscriptionModel openAiAudioTranscriptionModel, UserRepository userRepository, ProductsLikeRepository productsLikeRepository, ProductRepository productRepository, ImageRepository imageRepository, FileService fileService, @Qualifier("openAiVectorStore") VectorStore openAiVectorStore, @Qualifier("openClipVectorStore") VectorStore openClipVectorStore) {
+    public ChatbotService(OpenAiChatModel openAiChatModel, OpenAiEmbeddingModel openAiEmbeddingModel, OpenAiImageModel openAiImageModel, OpenAiAudioSpeechModel openAiAudioSpeechModel, OpenAiAudioTranscriptionModel openAiAudioTranscriptionModel, UserRepository userRepository, ProductsLikeRepository productsLikeRepository, ProductRepository productRepository, ImageRepository imageRepository, ChatMemoryRepository chatMemoryRepository, FileService fileService, @Qualifier("openAiVectorStore") VectorStore openAiVectorStore, @Qualifier("openClipVectorStore") VectorStore openClipVectorStore) {
         this.openAiChatModel = openAiChatModel;
         this.openAiEmbeddingModel = openAiEmbeddingModel;
         this.openAiImageModel = openAiImageModel;
@@ -92,6 +97,7 @@ public class ChatbotService {
         this.productsLikeRepository = productsLikeRepository;
         this.productRepository = productRepository;
         this.imageRepository = imageRepository;
+        this.chatMemoryRepository = chatMemoryRepository;
         this.fileService = fileService;
         this.openAiVectorStore = openAiVectorStore;
         this.openClipVectorStore = openClipVectorStore;
@@ -103,10 +109,15 @@ public class ChatbotService {
         UserEntity user = userRepository.findById(userId).orElseThrow(() ->new UserNotFoundException(userId));
         String personalColor = user.getPersonalColor().getPersonalColorType().toString();
         ChatClient chatClient = ChatClient.create(openAiChatModel);
+        List<String> buttonList = List.of(BotMessageType.EVALUATE_CODI.getTypeName(),BotMessageType.QnA.getTypeName(),BotMessageType.RECOMMEND_CODI.getTypeName());
+
+
         if(chatbotRequest.getBotMessageType().equals(BotMessageType.READY)){
 
-            return Map.of("message","무엇을 도와드릴까요?\n"+
-            "코디 평가, Q&A, AI 코디 추천");
+            String messageResponse = """
+                    안녕하세요! 먼저 원하시는 항목을 골라주세요!
+                    무엇을 도와드릴까요?""";
+            return new ChatBotNotRocommandCodiResponse(messageResponse,buttonList);
         }
         if (chatbotRequest.getBotMessageType().name().equals("EVALUATE_CODI")) {
 
@@ -225,15 +236,10 @@ public class ChatbotService {
 
             InputStreamResource inputStream = new InputStreamResource(chatbotRequest.getImageFile().getInputStream());
 
-            return chatClient.prompt().user(promptUserSpec -> promptUserSpec.media(MimeTypeUtils.IMAGE_PNG, new InputStreamResource(inputStream)).text(systemMessage.getText()+userMessage.getText())).call().content();
-//            return chatClient.prompt(prompt)
-//                    .stream()
-//                    .content()
-//                    .map(token -> {
-//                        responseBuffer.append(token);
-//                        return token;
-//                    });
-//            return chatClient.prompt(prompt).stream().content().map()chatResponse()chatClientResponse();
+            String messageResponse = chatClient.prompt().user(promptUserSpec -> promptUserSpec.media(MimeTypeUtils.IMAGE_PNG, new InputStreamResource(inputStream)).text(systemMessage.getText()+userMessage.getText())).call().content();
+            return  new ChatBotNotRocommandCodiResponse(messageResponse, buttonList);
+
+
         }else if(chatbotRequest.getBotMessageType().name().equals("QnA")&chatbotRequest.getContent()!=null){
 //            //1. 유사도 검색
 //            List<Document> documents = vectorStore.similaritySearch(SearchRequest.builder()
@@ -261,21 +267,27 @@ public class ChatbotService {
                 2. 관련이 없는 질문이라면 무조건 다음 문장으로만 답변하세요:
                    "옷, 패션, 퍼스널컬러, 메이크업 등 이와 관련된 질문을 해주시면 감사하겠습니다."
             """);
-
+            ChatMemory chatMemory = MessageWindowChatMemory.builder()
+                    .maxMessages(10)
+                    .chatMemoryRepository(chatMemoryRepository)
+                    .build();
             Message userMessage = new UserMessage(userQuestion);
+            chatMemory.add(userId.toString(), userMessage);
 
             OpenAiChatOptions options = OpenAiChatOptions.builder()
                     .model("gpt-4o-mini")
                     .temperature(0.7)
                     .build();
 
-            Prompt prompt = new Prompt(List.of(systemMessage, userMessage), options);
+            Prompt prompt = new Prompt(chatMemory.get(userId.toString()), options);
 
             // 5. ChatClient 호출
-            return chatClient.prompt(prompt)
+            String messageResponse =  chatClient.prompt(prompt)
                     .call()
                     .content();
+            chatMemory.add(userId.toString(), new AssistantMessage(Objects.requireNonNull(messageResponse)));
 
+            return new ChatBotNotRocommandCodiResponse(messageResponse, List.of(BotMessageType.READY.getTypeName(), BotMessageType.QnA.getTypeName()+" 끝내기"));
         } else if (chatbotRequest.getBotMessageType().equals(BotMessageType.RECOMMEND_CODI)) {
             List<ProductsLike> userLikeProductList = productsLikeRepository.findTop5ByUserIdOrderByIdDesc(userId);
 
@@ -328,7 +340,7 @@ public class ChatbotService {
                     productPresignedUrlList.add(fileService.getPreSignedUrl(image.getFirst().getS3Key()));
                     productDetailHrefList.add(product.getHerf());
                 }
-                return new ChatBotRecommandCodiResponse(productPresignedUrlList, productDetailHrefList);
+                return new ChatBotRecommandCodiResponse(productPresignedUrlList, productDetailHrefList, buttonList);
             }
         }
 

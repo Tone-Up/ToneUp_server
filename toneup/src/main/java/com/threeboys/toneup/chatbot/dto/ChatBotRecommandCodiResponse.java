@@ -12,4 +12,6 @@ import java.util.List;
 public class ChatBotRecommandCodiResponse {
     private List<String> productPresignedUrlList;
     private List<String> productDetailHrefList;
+
+    private List<String> buttonMessageList;
 }
