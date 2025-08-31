@@ -25,10 +25,10 @@ public class FirebaseConfig {
     @Bean
     public FirebaseApp firebaseApp() {
         try {
-//            InputStream serviceAccount =new ClassPathResource(SERVICE_KEY_PATH).getInputStream();
+            InputStream serviceAccount =new ClassPathResource(SERVICE_KEY_PATH).getInputStream();
 
-            FileInputStream serviceAccount =
-                    new FileInputStream("src/main/resources/firebase/service-key.json");
+//            FileInputStream serviceAccount =
+//                    new FileInputStream("src/main/resources/firebase/service-key.json");
 
             FirebaseOptions options = FirebaseOptions.builder()
                     .setCredentials(
