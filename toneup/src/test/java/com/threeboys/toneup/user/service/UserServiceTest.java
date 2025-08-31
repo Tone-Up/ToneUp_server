@@ -2,6 +2,8 @@ package com.threeboys.toneup.user.service;
 
 import com.threeboys.toneup.common.domain.Images;
 import com.threeboys.toneup.common.service.FileService;
+import com.threeboys.toneup.diary.repository.DiaryRepository;
+import com.threeboys.toneup.feed.repository.FeedRepository;
 import com.threeboys.toneup.follow.repository.UserFollowRepository;
 import com.threeboys.toneup.personalColor.domain.PersonalColor;
 import com.threeboys.toneup.personalColor.domain.PersonalColorType;
@@ -38,6 +40,12 @@ public class UserServiceTest {
     private UserFollowRepository followRepository;
 
     @Mock
+    private FeedRepository feedRepository;
+
+    @Mock
+    private DiaryRepository diaryRepository;
+
+    @Mock
     private FileService fileService;
 
     @Test
@@ -57,7 +65,9 @@ public class UserServiceTest {
         when(followRepository.countByFolloweeId(userId)).thenReturn(0L);
         when(followRepository.countByFollowerId(userId)).thenReturn(0L);
        when(followRepository.existsByFollowerIdAndFolloweeId(userId, userId)).thenReturn(false);
-        ProfileResponse expectProfileResponse = ProfileResponse.from(userEntity, profileImageUrl, 0L, 0L, false, false);
+        when(feedRepository.countByUserId(userId)).thenReturn(0L);
+        when(diaryRepository.countByUserId(userId)).thenReturn(0L);
+        ProfileResponse expectProfileResponse = ProfileResponse.from(userEntity, profileImageUrl, 0L, 0L, false, false, 0L, 0L);
         ProfileResponse profileResponse = userservice.getProfile(userId, userId);
 
         assertEquals(expectProfileResponse, profileResponse);

@@ -4,6 +4,8 @@ import com.threeboys.toneup.common.domain.ImageType;
 import com.threeboys.toneup.common.domain.Images;
 import com.threeboys.toneup.common.repository.ImageRepository;
 import com.threeboys.toneup.common.service.FileService;
+import com.threeboys.toneup.diary.repository.DiaryRepository;
+import com.threeboys.toneup.feed.repository.FeedRepository;
 import com.threeboys.toneup.follow.repository.UserFollowRepository;
 import com.threeboys.toneup.security.provider.ProviderType;
 import com.threeboys.toneup.user.domain.User;
@@ -24,6 +26,8 @@ public class Userservice {
     private final UserRepository userRepository;
     private final ImageRepository imageRepository;
     private final UserFollowRepository followRepository;
+    private final DiaryRepository diaryRepository;
+    private final FeedRepository feedRepository;
     private final FileService fileService;
 
     private static final String DEFAULT_PROFILE_IMAGE ="images/DEFAULT_PROFILE_IMAGE";
@@ -66,11 +70,17 @@ public class Userservice {
         UserEntity targetEntity = userRepository.findById(targetId).orElseThrow(()->new UserNotFoundException(userId));
         Long followerCount = followRepository.countByFolloweeId(targetId);
         Long followingCount = followRepository.countByFollowerId(targetId);
+        Long diaryCount = null;
+        if(userId.equals(targetId)){
+            diaryCount = diaryRepository.countByUserId(userId);
+        }
+        Long feedCount = feedRepository.countByUserId(userId);
+
         boolean isFollowing = followRepository.existsByFollowerIdAndFolloweeId(userId, targetId);
         boolean isFollower = followRepository.existsByFollowerIdAndFolloweeId(targetId, userId);
 
         String profileUrl = fileService.getPreSignedUrl(targetEntity.getProfileImageId().getS3Key());
-        return ProfileResponse.from(targetEntity, profileUrl, followerCount, followingCount, isFollower,isFollowing);
+        return ProfileResponse.from(targetEntity, profileUrl, followerCount, followingCount, isFollower,isFollowing, feedCount, diaryCount);
     }
 
     public void updateProfile(Long userId, UpdateProfileRequest updateProfileRequest) {

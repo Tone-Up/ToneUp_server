@@ -30,7 +30,7 @@ public class Diary {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
-    private UserEntity userId;
+    private UserEntity user;
 
     private String content;
 
@@ -43,7 +43,7 @@ public class Diary {
     public Diary(UserEntity user , String title, String content){
         validatetitle(title);
         validateContent(content);
-        this.userId = user;
+        this.user = user;
         this.title = title;
         this.content = content;
     }
@@ -89,7 +89,7 @@ public class Diary {
     }
 
     public void validateOwner(Long userId) {
-        if (!this.userId.getId().equals(userId)) {
+        if (!this.user.getId().equals(userId)) {
             throw new FORBIDDENException();
         }
     }

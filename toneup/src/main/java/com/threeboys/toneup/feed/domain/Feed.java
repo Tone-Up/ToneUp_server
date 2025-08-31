@@ -28,7 +28,7 @@ public class Feed {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
-    private UserEntity userId;
+    private UserEntity user;
 
     private String content;
 
@@ -40,7 +40,7 @@ public class Feed {
     @Builder
     public Feed(UserEntity user , String content){
         validateContent(content);
-        this.userId = user;
+        this.user = user;
         this.content = content;
         this.likeCount = 0;
     }
@@ -79,7 +79,7 @@ public class Feed {
     }
 
     public void validateOwner(Long userId) {
-        if (!this.userId.getId().equals(userId)) {
+        if (!this.user.getId().equals(userId)) {
             throw new FORBIDDENException();
         }
     }

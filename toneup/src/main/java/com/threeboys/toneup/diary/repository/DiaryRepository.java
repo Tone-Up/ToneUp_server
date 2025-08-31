@@ -9,4 +9,5 @@ import java.util.List;
 
 @Repository
 public interface DiaryRepository extends JpaRepository<Diary, Long> , CustomDiaryRepository{
+    Long countByUserId(Long userId);
 }

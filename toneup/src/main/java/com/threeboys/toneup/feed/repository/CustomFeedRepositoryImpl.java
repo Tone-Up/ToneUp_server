@@ -53,9 +53,9 @@ public class CustomFeedRepositoryImpl implements CustomFeedRepository {
                         fi.s3Key,
                         totalLikes.id.count().intValue(),
                         l.id.isNotNull(),
-                        f.userId.id.eq(userId)
+                        f.user.id.eq(userId)
                 )).from(f)
-                .join(f.userId, u)
+                .join(f.user, u)
                 .leftJoin(u.profileImageId, pi)
                 .leftJoin(fi).on(fi.type.eq(ImageType.FEED).and(fi.refId.eq(feedId)))
                 .leftJoin(l).on(l.feed.id.eq(f.id).and(l.user.id.eq(userId)))
@@ -88,7 +88,7 @@ public class CustomFeedRepositoryImpl implements CustomFeedRepository {
                         .and(like.user.id.eq(userId)))
                 .where(
                         cursor == null ? null : feed.id.lt(cursor),
-                        (isMine ? feed.userId.id.eq(userId) : null),
+                        (isMine ? feed.user.id.eq(userId) : null),
                         (myLike ? like.user.id.eq(userId) : null)
                 )
                 .orderBy(feed.id.desc())
@@ -115,7 +115,7 @@ public class CustomFeedRepositoryImpl implements CustomFeedRepository {
                         jpaQueryFactory
                                 .select(feed.count())
                                 .from(feed)
-                                .where(feed.userId.id.eq(userId))
+                                .where(feed.user.id.eq(userId))
                                 .fetchOne()
                 ).orElse(0L);
             }

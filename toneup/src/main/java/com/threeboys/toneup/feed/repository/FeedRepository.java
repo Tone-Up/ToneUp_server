@@ -12,6 +12,7 @@ import java.util.List;
 
 @Repository
 public interface FeedRepository extends JpaRepository<Feed, Long> , CustomFeedRepository{
+    Long countByUserId(Long userId);
 
 //    @Query("""
 //    SELECT new com.threeboys.toneup.feed.dto.FeedDetailDto(

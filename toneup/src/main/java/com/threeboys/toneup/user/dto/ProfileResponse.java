@@ -1,5 +1,6 @@
 package com.threeboys.toneup.user.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.threeboys.toneup.follow.dto.FollowResponse;
 import com.threeboys.toneup.user.entity.UserEntity;
@@ -21,10 +22,15 @@ public class ProfileResponse {
     @JsonProperty("isFollower")
     private boolean isFollower;
 
+    private Long feedCount;
+    @JsonInclude(JsonInclude.Include.NON_NULL) // null 값인 필드는 JSON에서 제외
+    private Long diaryCount;
+
+
 //    private FollowResponse followResponse;
 
     @Builder(access = AccessLevel.PRIVATE)
-    public ProfileResponse(Long userId, String nickname, String personalColor, String profileImageUrl, String bio, Long follower, Long following, boolean isFollower, boolean isFollowing) {
+    public ProfileResponse(Long userId, String nickname, String personalColor, String profileImageUrl, String bio, Long follower, Long following, boolean isFollower, boolean isFollowing, Long feedCount, Long diaryCount) {
         this.userId = userId;
         this.nickname = nickname;
         this.personalColor = personalColor;
@@ -34,10 +40,11 @@ public class ProfileResponse {
         this.following = following;
         this.isFollower = isFollower;
         this.isFollowing = isFollowing;
-
+        this.feedCount = feedCount;
+        this.diaryCount = diaryCount;
     }
 
-    public static ProfileResponse from(UserEntity userEntity, String profileImageUrl, Long follower, Long following, boolean isFollower, boolean isFollowing) {
+    public static ProfileResponse from(UserEntity userEntity, String profileImageUrl, Long follower, Long following, boolean isFollower, boolean isFollowing, Long feedCount, Long diaryCount ) {
         return ProfileResponse.builder()
                 .userId(userEntity.getId())
                 .nickname(userEntity.getNickname())
@@ -48,6 +55,8 @@ public class ProfileResponse {
                 .isFollowing(isFollowing)
                 .isFollower(isFollower)
                 .profileImageUrl(profileImageUrl)
+                .feedCount(feedCount)
+                .diaryCount(diaryCount)
                 .build();
     }
 
