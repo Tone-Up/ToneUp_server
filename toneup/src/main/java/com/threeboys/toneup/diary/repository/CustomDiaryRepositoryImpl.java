@@ -1,5 +1,6 @@
 package com.threeboys.toneup.diary.repository;
 
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.threeboys.toneup.common.domain.ImageType;
 import com.threeboys.toneup.common.domain.QImages;
@@ -45,7 +46,7 @@ public class CustomDiaryRepositoryImpl implements CustomDiaryRepository{
                         pi.s3Key,
                         di.s3Key
                 )).from(d)
-                .join(d.userId, u)
+                .join(d.user, u)
                 .leftJoin(u.profileImageId, pi)
                 .leftJoin(di).on(di.type.eq(ImageType.DIARY).and(di.refId.eq(diaryId)))
                 .where(d.id.eq(diaryId))
@@ -54,11 +55,11 @@ public class CustomDiaryRepositoryImpl implements CustomDiaryRepository{
     }
 
     @Override
-    public DiaryPageItemResponse findDiaryPreviewsWithImage(Long userId, Long cursor, int limit) {
+    public DiaryPageItemResponse findDiaryPreviewsWithImage(Long userId, Long cursor, Integer limit) {
         QDiary d = QDiary.diary;
         QImages i = QImages.images;
 
-        List<DiaryPreviewResponse> diaryPreviewResponseList = jpaQueryFactory.select(
+        JPAQuery<DiaryPreviewResponse> query = jpaQueryFactory.select(
                         new QDiaryPreviewResponse(
                                 d.id,
                                 d.title,
@@ -70,20 +71,27 @@ public class CustomDiaryRepositoryImpl implements CustomDiaryRepository{
                         .and(i.ImageOrder.eq(0)))
                 .where(
                         cursor == null ? null : d.id.lt(cursor)
-                        ,d.userId.id.eq(userId)
+                        ,d.user.id.eq(userId)
                 )
-                .orderBy(d.id.desc())
-                .limit(limit+1)
-                .fetch();
-        boolean hasNext = diaryPreviewResponseList.size() > limit;
+                .orderBy(d.id.desc());
+        if(limit != null){
+            query.limit(limit+1);
+        }
+
+        List<DiaryPreviewResponse> diaryPreviewResponseList = query.fetch();
+        boolean hasNext = false;
+        if(limit!=null){
+            hasNext = diaryPreviewResponseList.size() > limit;
+        }
         Long nextCursor = (hasNext) ? diaryPreviewResponseList.get(limit-1).getDiaryId() : null;
         Long totalCount = Optional.ofNullable(
                 jpaQueryFactory
                         .select(d.count())
                         .from(d)
-                        .where(d.userId.id.eq(userId))
+                        .where(d.user.id.eq(userId))
                         .fetchOne()
         ).orElse(0L);
+        diaryPreviewResponseList.removeLast();
         return new DiaryPageItemResponse(diaryPreviewResponseList, nextCursor, hasNext, totalCount);
     }
 

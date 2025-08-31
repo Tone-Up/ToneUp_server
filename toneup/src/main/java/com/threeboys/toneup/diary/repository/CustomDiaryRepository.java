@@ -8,5 +8,5 @@ import java.util.List;
 public interface CustomDiaryRepository {
     List<DiaryDetailDto> findDiaryWithUserAndImage(Long diaryId, Long userId);
 
-    DiaryPageItemResponse findDiaryPreviewsWithImage(Long userId, Long cursor, int limit);
+    DiaryPageItemResponse findDiaryPreviewsWithImage(Long userId, Long cursor, Integer limit);
 }

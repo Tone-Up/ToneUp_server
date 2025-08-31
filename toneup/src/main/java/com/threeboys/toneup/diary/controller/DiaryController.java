@@ -35,7 +35,7 @@ public class DiaryController {
         return ResponseEntity.ok(new StandardResponse<>(true, 0, "ok",diaryDetailResponse));
     }
     @GetMapping("/my-diary")
-    public ResponseEntity<?> getDiaryPagination(@RequestParam(required = false) Long cursor, @RequestParam(defaultValue = "10") int limit, @AuthenticationPrincipal CustomOAuth2User customOAuth2User){
+    public ResponseEntity<?> getDiaryPagination(@RequestParam(required = false) Long cursor, @RequestParam(required = false) Integer limit, @AuthenticationPrincipal CustomOAuth2User customOAuth2User){
         Long userId = customOAuth2User.getId();
         DiaryPageItemResponse diaryPageItemResponse = diaryService.getDiaryPreviews(userId, cursor, limit);
         return ResponseEntity.ok(new StandardResponse<>(true, 0, "ok", diaryPageItemResponse));
