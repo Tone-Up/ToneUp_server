@@ -146,7 +146,7 @@ public class ChatbotInitialization implements CommandLineRunner {
 
     private final JedisPooled jedis;
 
-    private static final String QNA_EMBEDDING_FILE = "src/main/resources/qna_embeddings.json";
+    private static final String QNA_EMBEDDING_FILE = "qna_embeddings.json";
     private static final String PRODUCT_EMBEDDING_FILE = "src/main/resources/product_embeddings.json";
 
     private static final Predicate<Object> RESPONSE_OK = Predicate.isEqual("OK");
@@ -167,20 +167,20 @@ public class ChatbotInitialization implements CommandLineRunner {
         vectorStore.add(documents);
 
         // 상품 임베딩 로드 (없으면 FastAPI에서 받아오기)
-        loadEmbeddingFromFile();
+//        loadEmbeddingFromFile();
 
         //redis pipeline으로 임베딩 데이터 백터 스토어에 저장
-        Path path = Paths.get(PRODUCT_EMBEDDING_FILE);
+//        Path path = Paths.get(PRODUCT_EMBEDDING_FILE);
 
-        if (!Files.exists(path)) {
-            throw new RuntimeException("product 임베딩 파일이 존재하지 않습니다: " + path.toAbsolutePath());
-        }
+//        if (!Files.exists(path)) {
+//            throw new RuntimeException("product 임베딩 파일이 존재하지 않습니다: " + path.toAbsolutePath());
+//        }
 
-        String json = Files.readString(path);
-        List<ProductEmbedding> products =  objectMapper.readValue(
-                json,
-                new TypeReference<List<ProductEmbedding>>() {}
-        );
+//        String json = Files.readString(path);
+//        List<ProductEmbedding> products =  objectMapper.readValue(
+//                json,
+//                new TypeReference<List<ProductEmbedding>>() {}
+//        );
 //        saveProductEmbeddingsWithPipeline(products);
 
     }
@@ -214,14 +214,16 @@ public class ChatbotInitialization implements CommandLineRunner {
 
     private List<Document> loadDocumentsFromFile() {
         try {
-            Path path = Paths.get(QNA_EMBEDDING_FILE);
+            ClassPathResource resource = new ClassPathResource(QNA_EMBEDDING_FILE);
 
-            if (!Files.exists(path)) {
-                throw new RuntimeException("임베딩 파일이 존재하지 않습니다: " + path.toAbsolutePath());
+
+            if (!resource.exists()) {
+                throw new RuntimeException("임베딩 파일이 존재하지 않습니다: " + resource.getPath());
             }
-
-            String json = Files.readString(path);
-            return objectMapper.readValue(json, new TypeReference<>() {});
+            // InputStream으로 읽어서 ObjectMapper에 전달
+            InputStream is = resource.getInputStream();
+                return objectMapper.readValue(is, new TypeReference<List<Document>>() {});
+//            return objectMapper.readValue(json, new TypeReference<>() {});
         } catch (Exception e) {
             throw new RuntimeException("Document 파일 로드 실패", e);
         }
@@ -229,6 +231,7 @@ public class ChatbotInitialization implements CommandLineRunner {
 
     private void loadEmbeddingFromFile() throws IOException {
         Path path = Paths.get(PRODUCT_EMBEDDING_FILE);
+
 
         // 파일이 없으면 FastAPI 호출해서 생성
         if (!Files.exists(path)) {
