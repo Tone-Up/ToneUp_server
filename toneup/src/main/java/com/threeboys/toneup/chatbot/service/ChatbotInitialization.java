@@ -181,7 +181,7 @@ public class ChatbotInitialization implements CommandLineRunner {
                 json,
                 new TypeReference<List<ProductEmbedding>>() {}
         );
-        saveProductEmbeddingsWithPipeline(products);
+//        saveProductEmbeddingsWithPipeline(products);
 
     }
 
