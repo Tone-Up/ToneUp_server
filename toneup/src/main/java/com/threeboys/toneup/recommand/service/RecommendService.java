@@ -2,7 +2,6 @@ package com.threeboys.toneup.recommand.service;
 
 import com.threeboys.toneup.common.service.FileService;
 import com.threeboys.toneup.personalColor.domain.PersonalColorType;
-import com.threeboys.toneup.product.dto.ProductPreviewResponse;
 import com.threeboys.toneup.product.repository.ProductRepository;
 import com.threeboys.toneup.recommand.dto.ProductPageItemResponse;
 import com.threeboys.toneup.recommand.repository.ProductPersonalColorRepository;
@@ -11,15 +10,12 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class RecommandService {
+public class RecommendService {
 //    private final ProductPersonalColorRepository productPersonalColorRepository;
     private final ProductRepository productRepository;
     private final ProductPersonalColorRepository productPersonalColorRepository;
@@ -75,7 +71,6 @@ public class RecommandService {
                     }
                 })
                 .collect(Collectors.toList());
-
         ProductPageItemResponse productPageItemResponse = productRepository.findProductWithImageAndIsLiked(userId,cursor, limit, productIdList, false, null);
         if(productPageItemResponse.getProducts()!=null){
             productPageItemResponse.getProducts().stream().forEach(productPreviewResponse -> {
@@ -86,8 +81,6 @@ public class RecommandService {
 
         hasNext = totalSize != null && totalSize > nextCursor;
         if(productPageItemResponse.getProducts()!=null){
-            List<ProductPreviewResponse> feeds = new ArrayList<>();
-            productPageItemResponse.setProducts(feeds);
             productPageItemResponse.setNextCursor(nextCursor);
             productPageItemResponse.setHasNext(hasNext);
         }else{
