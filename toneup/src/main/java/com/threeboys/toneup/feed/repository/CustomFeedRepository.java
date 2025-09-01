@@ -11,7 +11,7 @@ import java.util.List;
 public interface CustomFeedRepository {
     List<FeedDetailDto> findFeedWithUserAndImageAndIsLiked(Long feedId, Long userId);
 
-    FeedPageItemResponse findFeedPreviewsWithImageAndIsLiked(Long userId, Long cursor,  boolean isMine, int pageSize, boolean myLike);
+    FeedPageItemResponse findFeedPreviewsWithImageAndIsLiked(Long userId, Long cursor,  boolean isMine, int pageSize, boolean myLike, Long targetId);
 
     FeedRankingPageItemResponse findRankingFeedPreviewsWithImageAndIsLiked(Long userId, Long cursor, int limit);
 

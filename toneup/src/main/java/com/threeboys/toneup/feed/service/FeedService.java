@@ -85,9 +85,9 @@ public class FeedService {
         return FeedDetailResponse.from(feedDetailDtoList.getFirst(), profileImageUrl,imageUrls);
     }
 
-    public FeedPageItemResponse getFeedPreviews(Long userId , Long cursor, boolean isMine, int limit) {
+    public FeedPageItemResponse getFeedPreviews(Long userId , Long cursor, boolean isMine, int limit, Long targetId) {
         //다중 조인으로 전체 조회(프로필, 피드 ,이미지들, 좋아요여부)
-        FeedPageItemResponse feedPageItemResponse = feedRepository.findFeedPreviewsWithImageAndIsLiked( userId, cursor,isMine, limit, false);
+        FeedPageItemResponse feedPageItemResponse = feedRepository.findFeedPreviewsWithImageAndIsLiked( userId, cursor,isMine, limit, false, targetId);
         // 이미지 s3Key로 s3 조회해서 url 획득 + 프로필 이미지도 획득  
         feedPageItemResponse.getFeeds().forEach(feedPreviewResponse -> {
             feedPreviewResponse.setImageUrl(fileService.getPreSignedUrl(feedPreviewResponse.getImageUrl()));

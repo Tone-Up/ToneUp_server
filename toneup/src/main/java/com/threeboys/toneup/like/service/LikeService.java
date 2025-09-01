@@ -146,7 +146,7 @@ public class LikeService {
 
     public FeedPageItemResponse getLikeFeedPreviews(Long userId , Long cursor, boolean isMine, int limit) {
         //다중 조인으로 전체 조회(프로필, 피드 ,이미지들, 좋아요여부)
-        FeedPageItemResponse feedPageItemResponse = feedRepository.findFeedPreviewsWithImageAndIsLiked( userId, cursor,isMine, limit, true);
+        FeedPageItemResponse feedPageItemResponse = feedRepository.findFeedPreviewsWithImageAndIsLiked( userId, cursor,isMine, limit, true, null);
         // 이미지 s3Key로 s3 조회해서 url 획득 + 프로필 이미지도 획득
         feedPageItemResponse.getFeeds().forEach(feedPreviewResponse -> {
             feedPreviewResponse.setImageUrl(fileService.getPreSignedUrl(feedPreviewResponse.getImageUrl()));

@@ -183,19 +183,19 @@ class FeedServiceTest {
 
         FeedPageItemResponse mockResponse = new FeedPageItemResponse(List.of(preview1,preview2), 2L,false, 2L);
 
-        when(feedRepository.findFeedPreviewsWithImageAndIsLiked(userId, cursor, isMine, limit, false))
+        when(feedRepository.findFeedPreviewsWithImageAndIsLiked(userId, cursor, isMine, limit, false, null))
                 .thenReturn(mockResponse);
         when(fileService.getPreSignedUrl(IMAGE_KEY_1)).thenReturn("url-1");
         when(fileService.getPreSignedUrl(IMAGE_KEY_2)).thenReturn("url-2");
 
         // when
-        FeedPageItemResponse result = feedService.getFeedPreviews(userId, cursor, isMine, limit);
+        FeedPageItemResponse result = feedService.getFeedPreviews(userId, cursor, isMine, limit, null);
 
         // then
         assertThat(result.getFeeds()).extracting(FeedPreviewResponse::getImageUrl)
                 .containsExactly("url-1", "url-2");
 
-        verify(feedRepository).findFeedPreviewsWithImageAndIsLiked(userId, cursor, isMine, limit, false);
+        verify(feedRepository).findFeedPreviewsWithImageAndIsLiked(userId, cursor, isMine, limit, false, null);
         verify(fileService).getPreSignedUrl(IMAGE_KEY_1);
         verify(fileService).getPreSignedUrl(IMAGE_KEY_2);
     }

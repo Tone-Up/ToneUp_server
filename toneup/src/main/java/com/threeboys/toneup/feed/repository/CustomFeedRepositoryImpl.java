@@ -68,7 +68,7 @@ public class CustomFeedRepositoryImpl implements CustomFeedRepository {
                 .orderBy(fi.ImageOrder.asc())
                 .fetch();
     }
-    public FeedPageItemResponse findFeedPreviewsWithImageAndIsLiked(Long userId, Long cursor, boolean isMine, int limit, boolean myLike){
+    public FeedPageItemResponse findFeedPreviewsWithImageAndIsLiked(Long userId, Long cursor, boolean isMine, int limit, boolean myLike, Long targetId){
         QFeed feed = QFeed.feed;
         QImages image = QImages.images;
         QFeedsLike like = QFeedsLike.feedsLike;
@@ -88,7 +88,7 @@ public class CustomFeedRepositoryImpl implements CustomFeedRepository {
                         .and(like.user.id.eq(userId)))
                 .where(
                         cursor == null ? null : feed.id.lt(cursor),
-                        (isMine ? feed.user.id.eq(userId) : null),
+                        (isMine ? feed.user.id.eq(userId) : (targetId == null? null : feed.user.id.eq(targetId))),
                         (myLike ? like.user.id.eq(userId) : null)
                 )
                 .orderBy(feed.id.desc())
