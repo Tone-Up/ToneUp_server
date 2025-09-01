@@ -91,7 +91,7 @@ public class CustomDiaryRepositoryImpl implements CustomDiaryRepository{
                         .where(d.user.id.eq(userId))
                         .fetchOne()
         ).orElse(0L);
-        diaryPreviewResponseList.removeLast();
+        if(hasNext) diaryPreviewResponseList.removeLast();
         return new DiaryPageItemResponse(diaryPreviewResponseList, nextCursor, hasNext, totalCount);
     }
 

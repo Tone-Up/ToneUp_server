@@ -3,13 +3,11 @@ package com.threeboys.toneup.chatbot.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.threeboys.toneup.personalColor.infra.FastApiClient;
-import com.threeboys.toneup.product.domain.Product;
 import com.threeboys.toneup.product.dto.ProductEmbedding;
 import com.threeboys.toneup.product.dto.ProductEmbeddingRequest;
 import com.threeboys.toneup.product.repository.ProductRepository;
-import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
-import org.springframework.ai.embedding.EmbeddingOptionsBuilder;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.CommandLineRunner;
@@ -20,8 +18,6 @@ import redis.clients.jedis.JedisPooled;
 import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.json.Path2;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -136,7 +132,7 @@ import static org.springframework.ai.vectorstore.redis.RedisVectorStore.DEFAULT_
 //    }
 //}
 @Component
-//@RequiredArgsConstructor
+@Slf4j
 public class ChatbotInitialization implements CommandLineRunner {
 
     private final ProductRepository productRepository;
@@ -147,11 +143,14 @@ public class ChatbotInitialization implements CommandLineRunner {
     private final JedisPooled jedis;
 
     private static final String QNA_EMBEDDING_FILE = "qna_embeddings.json";
-    private static final String PRODUCT_EMBEDDING_FILE = "src/main/resources/product_embeddings.json";
+    private static final String PRODUCT_EMBEDDING_FILE = "product_embeddings.json";
+    private static final Path PRODUCT_EMBEDDING_PATH = Paths.get(System.getProperty("user.home"), "opt", "toneup", PRODUCT_EMBEDDING_FILE);
 
     private static final Predicate<Object> RESPONSE_OK = Predicate.isEqual("OK");
     private static final Path2 JSON_SET_PATH = Path2.of("$");
     public static final String PRODUCT_PREFIX = "productEmbedding";
+
+    private static final int BATCH_SIZE = 500; // 한 번에 처리할 embedding 개수
 
     public ChatbotInitialization(ProductRepository productRepository, FastApiClient fastApiClient, @Qualifier("openAiVectorStore") VectorStore vectorStore, JedisPooled jedis) {
         this.productRepository = productRepository;
@@ -170,13 +169,12 @@ public class ChatbotInitialization implements CommandLineRunner {
 //        loadEmbeddingFromFile();
 
         //redis pipeline으로 임베딩 데이터 백터 스토어에 저장
-//        Path path = Paths.get(PRODUCT_EMBEDDING_FILE);
 
-//        if (!Files.exists(path)) {
-//            throw new RuntimeException("product 임베딩 파일이 존재하지 않습니다: " + path.toAbsolutePath());
+//        if (!Files.exists(PRODUCT_EMBEDDING_PATH)) {
+//            throw new RuntimeException("product 임베딩 파일이 존재하지 않습니다: " + PRODUCT_EMBEDDING_PATH.toAbsolutePath());
 //        }
 
-//        String json = Files.readString(path);
+//        String json = Files.readString(PRODUCT_EMBEDDING_PATH);
 //        List<ProductEmbedding> products =  objectMapper.readValue(
 //                json,
 //                new TypeReference<List<ProductEmbedding>>() {}
@@ -185,29 +183,70 @@ public class ChatbotInitialization implements CommandLineRunner {
 
     }
 
+//    private void saveProductEmbeddingsWithPipeline(List<ProductEmbedding> products) {
+//        try (Pipeline pipeline = this.jedis.pipelined()) {
+//            int count = 0;
+//            for (ProductEmbedding product : products) {
+////                if(count==10) break;
+//                var fields = new HashMap<String, Object>();
+//                fields.put(DEFAULT_EMBEDDING_FIELD_NAME, product.getEmbedding());
+////                fields.put(this.contentFieldName, document.getText());
+////                fields.putAll(document.getMetadata());
+//                pipeline.jsonSetWithEscape(key(product.getProductId().toString()), JSON_SET_PATH, fields);
+//                count++;
+//            }
+//            List<Object> responses = pipeline.syncAndReturnAll();
+//            Optional<Object> errResponse = responses.stream().filter(Predicate.not(RESPONSE_OK)).findAny();
+//            if (errResponse.isPresent()) {
+//                String message = MessageFormat.format("Could not add document: {0}", errResponse.get());
+////                if (logger.isErrorEnabled()) {
+////                    logger.error(message);
+////                }
+//                throw new RuntimeException(message);
+//            }
+//        }
+//    }
+
+
     private void saveProductEmbeddingsWithPipeline(List<ProductEmbedding> products) {
-        try (Pipeline pipeline = this.jedis.pipelined()) {
-            int count = 0;
-            for (ProductEmbedding product : products) {
-//                if(count==10) break;
-                var fields = new HashMap<String, Object>();
-                fields.put(DEFAULT_EMBEDDING_FIELD_NAME, product.getEmbedding());
-//                fields.put(this.contentFieldName, document.getText());
-//                fields.putAll(document.getMetadata());
-                pipeline.jsonSetWithEscape(key(product.getProductId().toString()), JSON_SET_PATH, fields);
-                count++;
+        int total = products.size();
+        int processed = 0;
+
+        while (processed < total) {
+            int end = Math.min(processed + BATCH_SIZE, total);
+            List<ProductEmbedding> batch = products.subList(processed, end);
+
+            try (Pipeline pipeline = this.jedis.pipelined()) {
+                for (ProductEmbedding product : batch) {
+                    var fields = new HashMap<String, Object>();
+                    fields.put(DEFAULT_EMBEDDING_FIELD_NAME, product.getEmbedding());
+                    pipeline.jsonSetWithEscape(key(product.getProductId().toString()), JSON_SET_PATH, fields);
+                }
+
+                // Redis에 명령 flush
+                List<Object> responses = pipeline.syncAndReturnAll();
+
+                // 응답값에서 OK 아닌 것 체크
+                Optional<Object> errResponse = responses.stream()
+                        .filter(Predicate.not(RESPONSE_OK))
+                        .findAny();
+                if (errResponse.isPresent()) {
+                    String message = MessageFormat.format("Could not add document: {0}", errResponse.get());
+                    throw new RuntimeException(message);
+                }
+            } catch (Exception e) {
+                // 배치 단위로 에러 로깅 후 다음 배치 계속 진행 가능
+                log.error("Redis embedding 저장 실패 ({} ~ {}): {}", processed, end, e.getMessage(), e);
             }
-            List<Object> responses = pipeline.syncAndReturnAll();
-            Optional<Object> errResponse = responses.stream().filter(Predicate.not(RESPONSE_OK)).findAny();
-            if (errResponse.isPresent()) {
-                String message = MessageFormat.format("Could not add document: {0}", errResponse.get());
-//                if (logger.isErrorEnabled()) {
-//                    logger.error(message);
-//                }
-                throw new RuntimeException(message);
-            }
+
+            processed = end;
         }
+
+        log.info("Redis embedding 저장 완료: 총 {}개", total);
     }
+
+
+
     private String key(String productId) {
         return PRODUCT_PREFIX+ ":" + productId;
     }
@@ -230,15 +269,13 @@ public class ChatbotInitialization implements CommandLineRunner {
     }
 
     private void loadEmbeddingFromFile() throws IOException {
-        Path path = Paths.get(PRODUCT_EMBEDDING_FILE);
-
 
         // 파일이 없으면 FastAPI 호출해서 생성
-        if (!Files.exists(path)) {
+        if (!Files.exists(PRODUCT_EMBEDDING_PATH)) {
             System.out.println("상품 임베딩 파일 없음 → FastAPI에서 다운로드 중...");
             List<ProductEmbeddingRequest> products = productRepository.findAllEmbeddingData();
             Resource embeddingResource = fastApiClient.downloadEmbeddingFile(products);
-            createEmbeddingFile(embeddingResource, path);
+            createEmbeddingFile(embeddingResource);
         }
 
         // JSON 파일 파싱
@@ -247,17 +284,17 @@ public class ChatbotInitialization implements CommandLineRunner {
 //        System.out.println("상품 임베딩 로딩 완료: " + documents.size() + "개");
     }
 
-    private void createEmbeddingFile(Resource resource, Path path) {
+    private void createEmbeddingFile(Resource resource) {
         if (resource == null) {
             throw new RuntimeException("파일 다운로드 실패");
         }
 
         try {
-            Files.createDirectories(path.getParent());
+            Files.createDirectories(ChatbotInitialization.PRODUCT_EMBEDDING_PATH.getParent());
             try (InputStream inputStream = resource.getInputStream()) {
-                Files.copy(inputStream, path);
+                Files.copy(inputStream, ChatbotInitialization.PRODUCT_EMBEDDING_PATH);
             }
-            System.out.println("상품 임베딩 파일 저장 완료: " + path.toAbsolutePath());
+            System.out.println("상품 임베딩 파일 저장 완료: " + ChatbotInitialization.PRODUCT_EMBEDDING_PATH.toAbsolutePath());
         } catch (IOException e) {
             throw new RuntimeException("파일 생성 실패: " + e.getMessage(), e);
         }
