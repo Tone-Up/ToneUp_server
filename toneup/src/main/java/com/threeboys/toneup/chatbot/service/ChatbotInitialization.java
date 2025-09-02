@@ -269,7 +269,9 @@ public class ChatbotInitialization implements CommandLineRunner {
     }
 
     private void loadEmbeddingFromFile() throws IOException {
-
+        System.out.println("PRODUCT_EMBEDDING_PATH = " + PRODUCT_EMBEDDING_PATH.toAbsolutePath());
+        System.out.println("USER_HOME = " + System.getProperty("user.home"));
+        System.out.println("EXISTS = " + Files.exists(PRODUCT_EMBEDDING_PATH));
         // 파일이 없으면 FastAPI 호출해서 생성
         if (!Files.exists(PRODUCT_EMBEDDING_PATH)) {
             System.out.println("상품 임베딩 파일 없음 → FastAPI에서 다운로드 중...");
