@@ -166,20 +166,20 @@ public class ChatbotInitialization implements CommandLineRunner {
         vectorStore.add(documents);
 
         // 상품 임베딩 로드 (없으면 FastAPI에서 받아오기)
-//        loadEmbeddingFromFile();
+        loadEmbeddingFromFile();
 
         //redis pipeline으로 임베딩 데이터 백터 스토어에 저장
 
-//        if (!Files.exists(PRODUCT_EMBEDDING_PATH)) {
-//            throw new RuntimeException("product 임베딩 파일이 존재하지 않습니다: " + PRODUCT_EMBEDDING_PATH.toAbsolutePath());
-//        }
+        if (!Files.exists(PRODUCT_EMBEDDING_PATH)) {
+            throw new RuntimeException("product 임베딩 파일이 존재하지 않습니다: " + PRODUCT_EMBEDDING_PATH.toAbsolutePath());
+        }
 
-//        String json = Files.readString(PRODUCT_EMBEDDING_PATH);
-//        List<ProductEmbedding> products =  objectMapper.readValue(
-//                json,
-//                new TypeReference<List<ProductEmbedding>>() {}
-//        );
-//        saveProductEmbeddingsWithPipeline(products);
+        String json = Files.readString(PRODUCT_EMBEDDING_PATH);
+        List<ProductEmbedding> products =  objectMapper.readValue(
+                json,
+                new TypeReference<List<ProductEmbedding>>() {}
+        );
+        saveProductEmbeddingsWithPipeline(products);
 
     }
 
