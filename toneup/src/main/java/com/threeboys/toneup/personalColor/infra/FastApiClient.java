@@ -17,7 +17,7 @@ public interface FastApiClient {
     PersonalColorAnalyzeResponse requestPersonalColorUpdateWebClient(PersonalColorAnalyzeRequest input);
 
     PersonalColorAnalyzeResponse requestPersonalColorUpdateRestClient(PersonalColorAnalyzeRequest request);
-
+    PersonalColorAnalyzeResponse requestPersonalColorUpdateRestClientGpt(PersonalColorAnalyzeRequest input);
 
     Mono<PersonalColorAnalyzeResponse> requestPersonalColorUpdateWebClientReactive(PersonalColorAnalyzeRequest request);
 

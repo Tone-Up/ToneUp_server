@@ -187,6 +187,7 @@ public class FastApiClientImpl implements FastApiClient{
             long startTime = System.currentTimeMillis();
 //            Thread.sleep(50); // 요청 간 텀 (선택)
 
+
             PersonalColorAnalyzeResponse response = restClient.post()
                     .uri(fastApiUrl + "/analyze-color")
                     .contentType(MediaType.MULTIPART_FORM_DATA)
@@ -208,6 +209,49 @@ public class FastApiClientImpl implements FastApiClient{
             SEMAPHORE.release(); // 꼭 반환!
         }
     }
+
+    @Override
+    public PersonalColorAnalyzeResponse requestPersonalColorUpdateRestClientGpt(PersonalColorAnalyzeRequest input) {
+        try {
+            SEMAPHORE.acquire(); // 요청 전 세마포어 획득
+
+            MultipartFile imageFile = input.getImage();
+
+            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+            long startTime = System.currentTimeMillis();
+
+            body.add("user_id", String.valueOf(input.getUserId()));
+            body.add("file", new ByteArrayResource(imageFile.getBytes()) {
+                @Override
+                public String getFilename() {
+                    return imageFile.getOriginalFilename();
+                }
+            });
+
+            PersonalColorAnalyzeResponse response = restClient.post()
+                    .uri(fastApiUrl + "/analyze-color")
+                    .contentType(MediaType.MULTIPART_FORM_DATA)
+                    .body(body)   // MultiValueMap + HttpEntity 그대로 넣기
+                    .retrieve()
+                    .body(PersonalColorAnalyzeResponse.class);
+
+            long endTime = System.currentTimeMillis();
+            log.info("FastAPI 호출 및 응답 소요 시간: {} ms", (endTime - startTime));
+
+            return response;
+
+        } catch (IOException e) {
+            throw new RuntimeException("이미지 파일 처리 중 오류 발생", e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("스레드 sleep 또는 세마포어 획득 중단", e);
+        } finally {
+            SEMAPHORE.release(); // 꼭 반환
+        }
+    }
+
+
+
 //    @Override
 //    public PersonalColorAnalyzeResponse requestPersonalColorUpdateRestClient(PersonalColorAnalyzeRequest input) {
 //

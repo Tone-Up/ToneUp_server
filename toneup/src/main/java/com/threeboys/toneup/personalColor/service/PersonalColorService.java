@@ -130,7 +130,8 @@ public class PersonalColorService {
 
 
         // 3. WebClient를 통한 FastAPI 호출 (.block() 사용)
-        PersonalColorAnalyzeResponse response = fastApiClient.requestPersonalColorUpdateRestClient(request);
+//        PersonalColorAnalyzeResponse response = fastApiClient.requestPersonalColorUpdateRestClient(request);
+        PersonalColorAnalyzeResponse response = fastApiClient.requestPersonalColorUpdateRestClientGpt(request);
 
 
         // 4. 퍼스널컬러 엔티티 조회
