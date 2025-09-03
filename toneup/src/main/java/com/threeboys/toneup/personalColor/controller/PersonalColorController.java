@@ -40,18 +40,18 @@ public class PersonalColorController {
     @PostMapping("/personalcolor")
     public ResponseEntity<?> createPersonalColorNotFastApi(@RequestPart("image") MultipartFile imageFile, @AuthenticationPrincipal CustomOAuth2User customOAuth2User) {
          Long userId = customOAuth2User.getId();
-//        String personalColor = personalColorService.updatePersonalColor(userId, imageFile);
-        String personalColor = null;
-        try{
-            Thread.sleep(4000);
-            UserEntity user = userRepository.findById(userId).orElseThrow();
-            PersonalColor personalColor1 = PersonalColor.builder().personalColorType(PersonalColorType.AUTUMN).build();
-            PersonalColor personalColorEntity= personalColorRepository.save(personalColor1);
-            user.updatePersonalColor(personalColorEntity);
-            personalColor = personalColorEntity.getPersonalColorType().toString();
-        }catch (InterruptedException e){
-            log.error("InterruptedException : "+ e.getMessage());
-        }
+        String personalColor = personalColorService.updatePersonalColorRestClient(userId, imageFile);
+//        String personalColor = null;
+//        try{
+//            Thread.sleep(4000);
+//            UserEntity user = userRepository.findById(userId).orElseThrow();
+//            PersonalColor personalColor1 = PersonalColor.builder().personalColorType(PersonalColorType.AUTUMN).build();
+//            PersonalColor personalColorEntity= personalColorRepository.save(personalColor1);
+//            user.updatePersonalColor(personalColorEntity);
+//            personalColor = personalColorEntity.getPersonalColorType().toString();
+//        }catch (InterruptedException e){
+//            log.error("InterruptedException : "+ e.getMessage());
+//        }
         PersonalColorResponse personalColorResponse = new PersonalColorResponse(personalColor);
 
         return ResponseEntity.ok(new StandardResponse<>(true, 200, "Ok",personalColorResponse));
