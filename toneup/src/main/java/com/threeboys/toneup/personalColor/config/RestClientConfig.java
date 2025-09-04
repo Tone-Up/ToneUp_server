@@ -3,11 +3,13 @@ package com.threeboys.toneup.personalColor.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 
 import java.net.http.HttpClient;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.concurrent.Executors;
 
 @Configuration
@@ -37,7 +39,11 @@ public class RestClientConfig {
     @Bean
     public RestClient restClient(HttpClient httpClient) {
         return RestClient.builder()
-                .requestFactory(new JdkClientHttpRequestFactory(httpClient))
+                .requestFactory(new HttpComponentsClientHttpRequestFactory())
+                .requestInterceptor((request, body, execution) -> {
+                    System.out.println("Headers: " + request.getHeaders());
+                    return execution.execute(request, body);
+                })
                 .build();
     }
     @Bean
@@ -45,7 +51,7 @@ public class RestClientConfig {
         return HttpClient.newBuilder()
 //                .executor(Executors.newVirtualThreadPerTaskExecutor()) // Thread pinning 발생
                 .connectTimeout(Duration.ofSeconds(15))
-                .version(HttpClient.Version.HTTP_2)
+//                .version(HttpClient.Version.HTTP_2)
                 .build();
     }
     // Thread pinning 발생

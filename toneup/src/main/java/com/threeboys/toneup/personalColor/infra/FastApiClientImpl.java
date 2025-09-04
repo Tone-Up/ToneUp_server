@@ -1,12 +1,10 @@
 package com.threeboys.toneup.personalColor.infra;
 
-import com.threeboys.toneup.personalColor.domain.PersonalColor;
 import com.threeboys.toneup.personalColor.dto.PersonalColorAnalyzeRequest;
 import com.threeboys.toneup.personalColor.dto.PersonalColorAnalyzeResponse;
 import com.threeboys.toneup.product.dto.ProductEmbeddingRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.embedding.EmbeddingResponse;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -22,12 +20,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.Semaphore;
 
 @Slf4j
@@ -216,22 +210,28 @@ public class FastApiClientImpl implements FastApiClient{
             SEMAPHORE.acquire(); // 요청 전 세마포어 획득
 
             MultipartFile imageFile = input.getImage();
-
             MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-            long startTime = System.currentTimeMillis();
+//            MultipartBodyBuilder builder = new MultipartBodyBuilder();
 
+//            builder.part("user_id", String.valueOf(input.getUserId()));
+//            builder.part("file", imageFile.getResource());
             body.add("user_id", String.valueOf(input.getUserId()));
-            body.add("file", new ByteArrayResource(imageFile.getBytes()) {
-                @Override
-                public String getFilename() {
-                    return imageFile.getOriginalFilename();
-                }
-            });
+            body.add("file", new FileSystemResource(convert(imageFile))); // 파일처럼 인식시키기
 
+
+
+//            MultiValueMap<String, HttpEntity<?>> body = builder.build();
+
+            System.out.println("id : " + input.getUserId());
+//            System.out.println(body.getFirst("file").getBody() + " : " + body.getFirst("file").getHeaders());
+            long startTime = System.currentTimeMillis();
+//
+//            body.add("user_id", String.valueOf(input.getUserId()));
+//            body.add("file", imageFile.getResource());
             PersonalColorAnalyzeResponse response = restClient.post()
                     .uri(fastApiUrl + "/analyze-color")
-                    .contentType(MediaType.MULTIPART_FORM_DATA)
-                    .body(body)   // MultiValueMap + HttpEntity 그대로 넣기
+//                    .contentType(MediaType.MULTIPART_FORM_DATA)
+                    .body(body)  // MultiValueMap + HttpEntity 그대로 넣기
                     .retrieve()
                     .body(PersonalColorAnalyzeResponse.class);
 
@@ -240,11 +240,11 @@ public class FastApiClientImpl implements FastApiClient{
 
             return response;
 
-        } catch (IOException e) {
-            throw new RuntimeException("이미지 파일 처리 중 오류 발생", e);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new RuntimeException("스레드 sleep 또는 세마포어 획득 중단", e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         } finally {
             SEMAPHORE.release(); // 꼭 반환
         }
@@ -291,6 +291,12 @@ public class FastApiClientImpl implements FastApiClient{
 //
 //
 //    }
+
+    private File convert(MultipartFile file) throws IOException {
+        File convFile = File.createTempFile("upload-", file.getOriginalFilename());
+        file.transferTo(convFile);
+        return convFile;
+    }
 
     @Override
     public Mono<PersonalColorAnalyzeResponse> requestPersonalColorUpdateWebClientReactive(PersonalColorAnalyzeRequest request) {
