@@ -21,7 +21,7 @@ import java.util.UUID;
 public class FileService {
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
-
+    private final String CLOUDFRONT_URL = "https://dmyijkkepepby.cloudfront.net";
     private final AmazonS3 amazonS3;
 
     public void deleteS3Object(String s3Key){
@@ -33,6 +33,10 @@ public class FileService {
         GeneratePresignedUrlRequest generatePresignedUrlRequest = getGeneratePreSignedUrlRequest(bucket, s3Key, HttpMethod.GET);
         URL url = amazonS3.generatePresignedUrl(generatePresignedUrlRequest);
         return url.toString();
+    }
+    public String getCloudFrontUrl(String s3Key){
+
+        return CLOUDFRONT_URL + "/" +s3Key;
     }
 
     /**

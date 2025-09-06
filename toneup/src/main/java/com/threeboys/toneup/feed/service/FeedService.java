@@ -77,9 +77,9 @@ public class FeedService {
         if(feedDetailDtoList.isEmpty()) throw new FeedNotFoundException();
         // 이미지 s3Key로 s3 조회해서 url 획득 + 프로필 이미지도 획득
         List<String> imageUrls = feedDetailDtoList.stream()
-                .map(feedDetailDto -> fileService.getPreSignedUrl(feedDetailDto.getFeedImageS3Key()))
+                .map(feedDetailDto -> fileService.getCloudFrontUrl(feedDetailDto.getFeedImageS3Key()))
                 .toList();
-        String profileImageUrl = fileService.getPreSignedUrl(feedDetailDtoList.getFirst().getProfileS3Key());
+        String profileImageUrl = fileService.getCloudFrontUrl(feedDetailDtoList.getFirst().getProfileS3Key());
 
         // groupBy로 묶고 dto에 넣어서 반환
         return FeedDetailResponse.from(feedDetailDtoList.getFirst(), profileImageUrl,imageUrls);
