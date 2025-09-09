@@ -98,8 +98,8 @@ public class RedisSearchConfig {
                 .password(redisPassword) // Redis 비밀번호
                 .build();
         // JedisPooled로 래핑
-        HostAndPort hostAndPort = new HostAndPort("localhost",6379);
-        return new JedisPooled(hostAndPort, config);
+//        HostAndPort hostAndPort = new HostAndPort("localhost",6379);
+        return new JedisPooled(pool.getCurrentHostMaster(), config);
     }
 
     @Bean
