@@ -34,8 +34,11 @@ public class RedisConfig {
     @Value("${spring.data.redis.sentinel.master}")
     private String masterName;
 
-    @Value("${spring.data.redis.sentinel.nodes}")
-    private List<String> sentinelNodes;
+    private final RedisSentinelProperties redisSentinelProperties;
+
+    public RedisConfig(RedisSentinelProperties redisSentinelProperties) {
+        this.redisSentinelProperties = redisSentinelProperties;
+    }
 
 //    @Bean
 //    public RedisConnectionFactory redisConnectionFactory() {
@@ -61,6 +64,7 @@ public class RedisConfig {
             RedisSentinelConfiguration sentinelConfig = new RedisSentinelConfiguration()
                     .master(masterName);   // sentinel.conf에서 설정한 마스터 이름
 
+            List<String> sentinelNodes = redisSentinelProperties.getNodes();
             for (String node : sentinelNodes) {
                 String[] parts = node.split(":");
                 sentinelConfig.sentinel(parts[0], Integer.parseInt(parts[1]));

@@ -3,6 +3,7 @@ package com.threeboys.toneup.common.config;
 import com.redislabs.lettusearch.RediSearchClient;
 import com.redislabs.lettusearch.StatefulRediSearchConnection;
 import io.lettuce.core.RedisURI;
+import jakarta.annotation.PostConstruct;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.embedding.EmbeddingModel;
@@ -18,6 +19,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.*;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -41,8 +43,8 @@ public class RedisSearchConfig {
     @Value("${spring.data.redis.sentinel.password}")
     private String redisPassword;
 
-    @Value("${spring.data.redis.sentinel.nodes}")
-    private List<String> sentinelNodes;
+    private final RedisSentinelProperties redisSentinelProperties;
+
 
     @Value("${spring.data.redis.sentinel.master}")
     private String masterName;
@@ -50,7 +52,11 @@ public class RedisSearchConfig {
     @Value(("${spring.ai.openai.api-key}"))
     private String openApiKey;
 
-//
+    public RedisSearchConfig(RedisSentinelProperties redisSentinelProperties) {
+        this.redisSentinelProperties = redisSentinelProperties;
+    }
+
+    //
 //    @Bean
 //    public RediSearchClient rediSearchClient() {
 //        RedisURI redisUri = RedisURI.Builder
@@ -66,21 +72,40 @@ public class RedisSearchConfig {
 //        return rediSearchClient.connect();
 //    }
 //
+
+//    @Bean
+//    public JedisPooled jedisPooled() {
+//        DefaultJedisClientConfig config = DefaultJedisClientConfig.builder()
+//                .password(redisPassword)   // Redis 비밀번호
+//                .build();
+//        String[] firstNode = redisSentinelProperties.getNodes().getFirst().split(":");
+//
+//        return new JedisPooled(new HostAndPort(firstNode[0], Integer.parseInt(firstNode[1])), config);
+//    }
     @Bean
     public JedisPooled jedisPooled() {
-        DefaultJedisClientConfig config = DefaultJedisClientConfig.builder()
-                .password(redisPassword)   // Redis 비밀번호
+        Set<String> sentinels = new HashSet<>(redisSentinelProperties.getNodes()); // "host:port" 형태
+        String masterName = redisSentinelProperties.getMaster();
+
+        // JedisSentinelPool용 클라이언트 설정
+//        DefaultJedisClientConfig clientConfig = DefaultJedisClientConfig.builder()
+//                .password(redisPassword)   // Redis 비밀번호
+//                .build();
+
+        // JedisSentinelPool 생성 (5.x 버전)
+        JedisSentinelPool pool = new JedisSentinelPool(masterName, sentinels, redisPassword);
+        JedisClientConfig config = DefaultJedisClientConfig.builder()
+                .password(redisPassword) // Redis 비밀번호
                 .build();
-        String[] firstNode = sentinelNodes.getFirst().split(":");
-
-        return new JedisPooled(new HostAndPort(firstNode[0], Integer.parseInt(firstNode[1])), config);
+        // JedisPooled로 래핑
+        HostAndPort hostAndPort = new HostAndPort("localhost",6379);
+        return new JedisPooled(hostAndPort, config);
     }
-
 
     @Bean
     public RediSearchClient rediSearchClient() {
         // Sentinel 연결: 첫 번째 노드 기준, 마스터 이름 지정
-        String[] firstNode = sentinelNodes.getFirst().split(":");
+        String[] firstNode = redisSentinelProperties.getNodes().getFirst().split(":");
         RedisURI redisUri = RedisURI.Builder
                 .sentinel(firstNode[0], Integer.parseInt(firstNode[1]), masterName)
                 .withPassword(redisPassword.toCharArray())

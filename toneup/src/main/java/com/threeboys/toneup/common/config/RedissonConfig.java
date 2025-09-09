@@ -1,5 +1,6 @@
 package com.threeboys.toneup.common.config;
 
+import jakarta.annotation.PostConstruct;
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
 import org.redisson.config.Config;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Configuration
@@ -33,9 +35,11 @@ public class RedissonConfig {
     @Value("${spring.data.redis.sentinel.master}")
     private String masterName;
 
-    @Value("${spring.data.redis.sentinel.nodes}")
-    private List<String> sentinelNodes;
+    private final RedisSentinelProperties redisSentinelProperties;
 
+    public RedissonConfig(RedisSentinelProperties redisSentinelProperties) {
+        this.redisSentinelProperties = redisSentinelProperties;
+    }
 
 //
 //    @Bean(destroyMethod = "shutdown")
@@ -59,8 +63,9 @@ public class RedissonConfig {
     @Bean(destroyMethod = "shutdown")
     public RedissonClient redissonClient() {
         Config config = new Config();
-
+        List<String> sentinelNodes = redisSentinelProperties.getNodes();
         // Sentinel 모드 사용
+        System.out.println(sentinelNodes.getFirst());
         config.useSentinelServers()
                 .setMasterName(masterName)   // sentinel.conf에서 설정한 마스터 이름
                 .addSentinelAddress(
@@ -71,7 +76,8 @@ public class RedissonConfig {
                 .setPassword(redisPassword)
                 .setReadMode(ReadMode.MASTER_SLAVE)         // 슬레이브 우선 읽기
                 .setSlaveConnectionMinimumIdleSize(0)
-                .setSlaveConnectionPoolSize(6);
+                .setSlaveConnectionPoolSize(6)
+                .setCheckSentinelsList(false); // 로컬에서만
 
         return Redisson.create(config);
     }
