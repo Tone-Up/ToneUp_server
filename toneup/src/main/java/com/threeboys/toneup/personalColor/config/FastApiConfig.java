@@ -8,6 +8,7 @@ import com.threeboys.toneup.personalColor.infra.FastApiClientImpl;
 import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.redisson.api.RedissonClient;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -60,7 +61,7 @@ public class FastApiConfig {
                 .build();
     }
     @Bean
-    public FastApiClient fastApiClient(RestTemplate restTemplate, FastApiProperties props, WebClient webClient, RestClient restClient) {
-        return new FastApiClientImpl(restTemplate, props.getUrl(), webClient, restClient);
+    public FastApiClient fastApiClient(RestTemplate restTemplate, FastApiProperties props, WebClient webClient, RestClient restClient, RedissonClient redissonClient) {
+        return new FastApiClientImpl(restTemplate, props.getUrl(),redissonClient, webClient, restClient );
     }
 }

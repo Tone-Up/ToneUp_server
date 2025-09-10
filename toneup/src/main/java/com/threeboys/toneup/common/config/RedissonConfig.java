@@ -41,7 +41,6 @@ public class RedissonConfig {
         this.redisSentinelProperties = redisSentinelProperties;
     }
 
-//
 //    @Bean(destroyMethod = "shutdown")
 //    public RedissonClient redissonClient() {
 //        Config config = new Config();
@@ -77,7 +76,7 @@ public class RedissonConfig {
                 .setReadMode(ReadMode.MASTER_SLAVE)         // 슬레이브 우선 읽기
                 .setSlaveConnectionMinimumIdleSize(0)
                 .setSlaveConnectionPoolSize(6)
-                .setCheckSentinelsList(false); // 로컬에서만
+                .setCheckSentinelsList(true); // 로컬에서만 false
 
         return Redisson.create(config);
     }

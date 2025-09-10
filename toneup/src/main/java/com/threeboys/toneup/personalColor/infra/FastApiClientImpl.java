@@ -5,6 +5,8 @@ import com.threeboys.toneup.personalColor.dto.PersonalColorAnalyzeResponse;
 import com.threeboys.toneup.product.dto.ProductEmbeddingRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RSemaphore;
+import org.redisson.api.RedissonClient;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -29,6 +31,11 @@ import java.util.concurrent.Semaphore;
 public class FastApiClientImpl implements FastApiClient{
     private final RestTemplate restTemplate;
     private final String fastApiUrl;
+    private final RedissonClient redissonClient;
+
+
+    private static final String SEMAPHORE_KEY = "personalColor:semaphore";
+    private static final int PERMIT_COUNT = 12;
 
     @Override
     public PersonalColorAnalyzeResponse requestPersonalColorUpdate(PersonalColorAnalyzeRequest input) {
@@ -206,8 +213,11 @@ public class FastApiClientImpl implements FastApiClient{
 
     @Override
     public PersonalColorAnalyzeResponse requestPersonalColorUpdateRestClientGpt(PersonalColorAnalyzeRequest input) {
+        RSemaphore semaphore = redissonClient.getSemaphore(SEMAPHORE_KEY);
+        semaphore.trySetPermits(PERMIT_COUNT);
         try {
-            SEMAPHORE.acquire(); // 요청 전 세마포어 획득
+            semaphore.acquire(); // 요청 전 세마포어 획득
+
 
             MultipartFile imageFile = input.getImage();
             MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
@@ -246,7 +256,7 @@ public class FastApiClientImpl implements FastApiClient{
         } catch (IOException e) {
             throw new RuntimeException(e);
         } finally {
-            SEMAPHORE.release(); // 꼭 반환
+            semaphore.release(); // 꼭 반환
         }
     }
 
