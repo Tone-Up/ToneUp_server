@@ -147,9 +147,13 @@ class FeedServiceTest {
                 .thenReturn(mockDtoList);
 
         // fileService mock 동작 정의
-        when(fileService.getPreSignedUrl("feed-image-1")).thenReturn("url-1");
-        when(fileService.getPreSignedUrl("feed-image-2")).thenReturn("url-2");
-        when(fileService.getPreSignedUrl("testprofileS3Key")).thenReturn("profile-url");
+//        when(fileService.getPreSignedUrl("feed-image-1")).thenReturn("url-1");
+//        when(fileService.getPreSignedUrl("feed-image-2")).thenReturn("url-2");
+//        when(fileService.getPreSignedUrl("testprofileS3Key")).thenReturn("profile-url");
+
+        when(fileService.getCloudFrontUrl("feed-image-1")).thenReturn("url-1");
+        when(fileService.getCloudFrontUrl("feed-image-2")).thenReturn("url-2");
+        when(fileService.getCloudFrontUrl("testprofileS3Key")).thenReturn("profile-url");
 
         // when
         FeedDetailResponse result = feedService.getFeed(userId, feedId);
@@ -160,9 +164,9 @@ class FeedServiceTest {
         assertThat(result.getContent()).isEqualTo("testFeedContent");
 
         verify(feedRepository).findFeedWithUserAndImageAndIsLiked(feedId, userId);
-        verify(fileService).getPreSignedUrl("feed-image-1");
-        verify(fileService).getPreSignedUrl("feed-image-2");
-        verify(fileService).getPreSignedUrl("testprofileS3Key");
+        verify(fileService).getCloudFrontUrl("feed-image-1");
+        verify(fileService).getCloudFrontUrl("feed-image-2");
+        verify(fileService).getCloudFrontUrl("testprofileS3Key");
     }
 
     @Test
