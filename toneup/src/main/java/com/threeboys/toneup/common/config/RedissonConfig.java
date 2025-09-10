@@ -66,6 +66,7 @@ public class RedissonConfig {
         // Sentinel 모드 사용
         System.out.println(sentinelNodes.getFirst());
         config.useSentinelServers()
+                .setSentinelPassword(redisPassword)
                 .setMasterName(masterName)   // sentinel.conf에서 설정한 마스터 이름
                 .addSentinelAddress(
                         REDISSON_HOST_PREFIX + sentinelNodes.get(0),
