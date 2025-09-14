@@ -7,6 +7,8 @@ import com.corundumstudio.socketio.listener.DisconnectListener;
 import com.threeboys.toneup.socketio.dto.JoinRoomResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RTopic;
+import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -15,12 +17,13 @@ import java.util.*;
 @Slf4j
 public class SocketIOConnectionListener {
     private final SocketIOServer server;
-
+    private final RedissonClient redissonClient;
     /**
      * 소켓 이벤트 리스너 등록
      */
-    public SocketIOConnectionListener(SocketIOServer server) {
+    public SocketIOConnectionListener(SocketIOServer server, RedissonClient redissonClient) {
         this.server = server;
+        this.redissonClient = redissonClient;
 
         // 소켓 이벤트 리스너 등록
         server.addConnectListener(listenConnected());
@@ -57,7 +60,11 @@ public class SocketIOConnectionListener {
                 log.info(client.getNamespace().getName() + " : client getNamespace 확인용////////////////////////////");
                 JoinRoomResponse joinRoomResponse = new JoinRoomResponse(userId,roomId);
                 client.getNamespace().getRoomOperations(roomId).sendEvent("joinRoom", joinRoomResponse);
+
 //                server.getNamespace("").getRoomOperations(roomId).sendEvent("joinRoom", "유저 : " + nickname + "이 입장했습니다.");
+
+                RTopic topic = redissonClient.getTopic("room:" + roomId);
+                topic.publish(new JoinRoomResponse(userId, roomId));
 
 
                 log.info("client{}가 방 : {} 에 입장했습니다.", client.getSessionId(), roomId);
