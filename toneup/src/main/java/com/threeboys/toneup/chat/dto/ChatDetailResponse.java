@@ -3,16 +3,17 @@ package com.threeboys.toneup.chat.dto;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.threeboys.toneup.chat.domain.MessageType;
-import lombok.*;
+import com.threeboys.toneup.user.entity.UserEntity;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class ChatDetailResponse {
 
     private Long partnerId;
@@ -34,5 +35,14 @@ public class ChatDetailResponse {
         @JsonProperty("isMine")
         private boolean isMine;
         private MessageType contentType;
+    }
+
+    public static ChatDetailResponse of(UserEntity partnerUser, String profileUrl, List<MessageDetailDto> messages) {
+        return ChatDetailResponse.builder()
+                .partnerId(partnerUser.getId())
+                .partnerNickname(partnerUser.getNickname())
+                .partnerProfileImageUrl(profileUrl)
+                .messages(messages)
+                .build();
     }
 }

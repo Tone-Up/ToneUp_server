@@ -41,17 +41,22 @@ public class ChatMessagesService {
     private final FileService fileService;
     private final SocketIOServer server;
 
+    public Set<Long> getUserIdsInRoom(Long roomId) {
+        return chatRoomUserRepository.findByChatRoomId(roomId).stream()
+                .map(chatRoomUser -> chatRoomUser.getUser().getId())
+                .collect(Collectors.toSet());
+    }
 
     @Transactional
     public void saveMessage(ChatMessage message, boolean isReceiverInRoom, int unreadCount) {
         Long roomId = Long.parseLong(message.getRoomId());
-        ChatRooms chatRoom = chatRoomsRepository.findById(roomId).orElseThrow(ChatRoomNotFoundException::new);
-        ChatMessages chatMessages = message.toEntity(chatRoom);
 
-        //방에 상대방이 존재하는지 여부
-        if(!isReceiverInRoom){
-            chatMessages.updateUnreadCnt(unreadCount);
-        }
+        ChatRooms chatRoom = chatRoomsRepository.findById(roomId).orElseThrow(ChatRoomNotFoundException::new);
+
+        // 방에 상대방이 존재하는지 여부
+        message.handleUnread(isReceiverInRoom, unreadCount);
+
+        ChatMessages chatMessages = message.toEntity(chatRoom);
         chatMessagesRepository.save(chatMessages);
 
         String content = chatMessages.getContent();
@@ -59,13 +64,8 @@ public class ChatMessagesService {
         chatRoom.updateLastMessage(sentAt, content);
     }
 
-    public Set<Long> getUserIdsInRoom(Long roomId) {
-        return chatRoomUserRepository.findByChatRoomId(roomId).stream()
-                .map(chatRoomUser -> chatRoomUser.getUser().getId())
-                .collect(Collectors.toSet());
-    }
     @Transactional
-    public Long createChatRoom(CreateChatRoomRequest createChatRoomRequest){
+    public Long createChatRoom(CreateChatRoomRequest createChatRoomRequest) {
         Long userId = createChatRoomRequest.getUserId();
         Long peerId = createChatRoomRequest.getPeerId();
         List<ChatRoomUser> userChatRoom = chatRoomUserRepository.findByUserId(userId);
@@ -82,37 +82,39 @@ public class ChatMessagesService {
         boolean hasCommonRoom = userChatRoom.stream()
                 .map(c -> c.getChatRoom().getId())
                 .anyMatch(peerRoomIds::contains);
-        if(!hasCommonRoom){
+        if (!hasCommonRoom) {
             // 여기 들어오는 순간 현재 최소 두명 중 한명은 방에서 나간 상태
 
             // isActive = false 인 방에서 마지막 메시지를 가져와 나간 상대의 아이디가 리퀘스트의 상대방 아이디인 경우 그 방 리턴
-            List<ChatRooms> userRoom = chatRoomsRepository.findByIsActiveFalseAndRoomsId(userRoomIds, peerId, PageRequest.of(0,1));
-            //내 기준으로 상대방이 내 방에서 나간적이 있나
-            if(userRoom.isEmpty()){
-                //없다면 상대방 기준으로 내가 상대방 방에서 나간적이 있나
-                List<ChatRooms> peerRoom = chatRoomsRepository.findByIsActiveFalseAndRoomsId(peerRoomIds, userId, PageRequest.of(0,1));
-               if(!peerRoom.isEmpty()){
-                   //상대방 방에 내가 다시 들어감
-                   UserEntity user = userRepository.getReferenceById(peerId);
-                   ChatRoomUser chatRoomPeerUser = new ChatRoomUser(user, peerRoom.getFirst());
-                   chatRoomUserRepository.save(chatRoomPeerUser);
-                   return peerRoom.getFirst().getId();
-               }else{
-                   //상대방 비활성화 방에도 유저 비활성화 방에서 존재 하지 않으므로 아예 새로 방 만들기
-                   UserEntity user = userRepository.getReferenceById(userId);
-                   UserEntity peerUser = userRepository.getReferenceById(peerId);
+            List<ChatRooms> userRoom = chatRoomsRepository.findByIsActiveFalseAndRoomsId(userRoomIds, peerId,
+                    PageRequest.of(0, 1));
+            // 내 기준으로 상대방이 내 방에서 나간적이 있나
+            if (userRoom.isEmpty()) {
+                // 없다면 상대방 기준으로 내가 상대방 방에서 나간적이 있나
+                List<ChatRooms> peerRoom = chatRoomsRepository.findByIsActiveFalseAndRoomsId(peerRoomIds, userId,
+                        PageRequest.of(0, 1));
+                if (!peerRoom.isEmpty()) {
+                    // 상대방 방에 내가 다시 들어감
+                    UserEntity user = userRepository.getReferenceById(peerId);
+                    ChatRoomUser chatRoomPeerUser = new ChatRoomUser(user, peerRoom.getFirst());
+                    chatRoomUserRepository.save(chatRoomPeerUser);
+                    return peerRoom.getFirst().getId();
+                } else {
+                    // 상대방 비활성화 방에도 유저 비활성화 방에서 존재 하지 않으므로 아예 새로 방 만들기
+                    UserEntity user = userRepository.getReferenceById(userId);
+                    UserEntity peerUser = userRepository.getReferenceById(peerId);
 
-                   ChatRooms chatRooms = new ChatRooms();
-                   ChatRoomUser chatRoomUser = new ChatRoomUser(user, chatRooms);
-                   ChatRoomUser chatRoomPeerUser = new ChatRoomUser(peerUser, chatRooms);
-                   chatRoomsRepository.save(chatRooms);
-                   chatRoomUserRepository.save(chatRoomUser);
-                   chatRoomUserRepository.save(chatRoomPeerUser);
-                   return chatRooms.getId();
-               }
+                    ChatRooms chatRooms = new ChatRooms();
+                    ChatRoomUser chatRoomUser = new ChatRoomUser(user, chatRooms);
+                    ChatRoomUser chatRoomPeerUser = new ChatRoomUser(peerUser, chatRooms);
+                    chatRoomsRepository.save(chatRooms);
+                    chatRoomUserRepository.save(chatRoomUser);
+                    chatRoomUserRepository.save(chatRoomPeerUser);
+                    return chatRooms.getId();
+                }
 
-            }else{
-                //상대방이 내 방에서 나갔으므로 내방으로 초대
+            } else {
+                // 상대방이 내 방에서 나갔으므로 내방으로 초대
                 UserEntity peerUser = userRepository.getReferenceById(peerId);
                 ChatRoomUser chatRoomPeerUser = new ChatRoomUser(peerUser, userRoom.getFirst());
                 chatRoomUserRepository.save(chatRoomPeerUser);
@@ -120,8 +122,8 @@ public class ChatMessagesService {
                 return userRoom.getFirst().getId();
             }
 
-        }else{
-            //둘 다 방에 있는 경우
+        } else {
+            // 둘 다 방에 있는 경우
             List<Long> commonRoomIds = userChatRoom.stream()
                     .map(c -> c.getChatRoom().getId())
                     .filter(peerRoomIds::contains)
@@ -130,15 +132,17 @@ public class ChatMessagesService {
         }
 
     }
+
     @Transactional
     public void leaveChatRoom(Long chatRoomId, Long userId) {
         UserEntity user = userRepository.findById(userId).orElseThrow();
-        ChatMessage message = ChatMessage.create(userId, "유저 : "+ user.getId() +" 이 나갔습니다.");
+        ChatMessage message = ChatMessage.create(userId, "유저 : " + user.getId() + " 이 나갔습니다.");
         message.setType(MessageType.LEAVE);
         ChatRooms chatRoom = chatRoomsRepository.findById(chatRoomId).orElseThrow();
         long roomInUserCount = chatRoomUserRepository.findByChatRoomId(chatRoomId).size();
 
-        if(roomInUserCount<=2) chatRoom.changeIsActive(false);
+        if (roomInUserCount <= 2)
+            chatRoom.changeIsActive(false);
 
         chatMessagesRepository.save(message.toEntity(chatRoom));
 
@@ -167,25 +171,34 @@ public class ChatMessagesService {
 
         return response;
     }
+
     @Transactional
     public ChatDetailResponse getChatDetail(Long userId, Long chatRoomId, LocalDateTime lastSentAt) {
-        if(lastSentAt==null) lastSentAt = LocalDateTime.parse("2010-01-11T00:00:00");
-        List<ChatMessages> chatMessagesList = chatMessagesRepository.findByRoomIdAndSentAtGreaterThan(chatRoomId, lastSentAt);
+        if (lastSentAt == null)
+            lastSentAt = LocalDateTime.parse("2010-01-11T00:00:00");
+
+        List<ChatMessages> chatMessagesList = chatMessagesRepository.findByRoomIdAndSentAtGreaterThan(chatRoomId,
+                lastSentAt);
         chatMessagesList.removeFirst();
 
-        List<ChatRoomUser> chatRoomUserList = chatRoomUserRepository.findByChatRoomId(chatRoomId);
-        List<UserEntity> partner = chatRoomUserList.stream()
-                .map(ChatRoomUser::getUser)
-                .filter(user -> !user.getId().equals(userId)) // 내가 아닌 유저만
-                .toList();
+        // List<ChatRoomUser> chatRoomUserList =
+        // chatRoomUserRepository.findByChatRoomId(chatRoomId);
+        // List<UserEntity> partner = chatRoomUserList.stream()
+        // .map(ChatRoomUser::getUser)
+        // .filter(user -> !user.getId().equals(userId)) // 내가 아닌 유저만
+        // .toList();
 
-        ChatDetailResponse chatDetailResponse = new ChatDetailResponse();
+        List<UserEntity> partner = findPartner(chatRoomId, userId);
+
+        // ChatDetailResponse chatDetailResponse = new ChatDetailResponse();
         List<ChatDetailResponse.MessageDetailDto> messages = new ArrayList<>();
 
-        //unreadCount -1 더티 체킹으로 이거는 지금 1대1 채팅시에만 가능한 구조임 단체 채팅되는 순간 내가 이전에 읽은 적이 있는지 확인할 로직이 더 있어야함
+        // unreadCount -1 더티 체킹으로 이거는 지금 1대1 채팅시에만 가능한 구조임 단체 채팅되는 순간 내가 이전에 읽은 적이 있는지
+        // 확인할 로직이 더 있어야함
         chatMessagesList.stream().forEach(chatMessages -> {
             int unreadCount = chatMessages.getUnreadCount();
-            if(unreadCount>0&& !Objects.equals(chatMessages.getSenderId(), userId)) chatMessages.updateUnreadCnt(unreadCount-1);
+            if (unreadCount > 0 && !Objects.equals(chatMessages.getSenderId(), userId))
+                chatMessages.updateUnreadCnt(unreadCount - 1);
         });
 
         for (ChatMessages value : chatMessagesList) {
@@ -193,7 +206,7 @@ public class ChatMessagesService {
             boolean isMine = Objects.equals(userId, value.getSenderId());
 
             String content = value.getContent();
-            if(value.getType().equals(MessageType.IMAGE)) {
+            if (value.getType().equals(MessageType.IMAGE)) {
                 List<String> list = Arrays.stream(content.split(","))
                         .map(String::trim) // 공백 제거
                         .toList();
@@ -203,15 +216,12 @@ public class ChatMessagesService {
 
             }
 
-            messages.add(new ChatDetailResponse.MessageDetailDto(value.getId(), value.getSenderId(), content, value.getSentAt(), isRead, isMine, value.getType()));
+            messages.add(new ChatDetailResponse.MessageDetailDto(value.getId(), value.getSenderId(), content,
+                    value.getSentAt(), isRead, isMine, value.getType()));
         }
 
-        chatDetailResponse.setMessages(messages);
-        chatDetailResponse.setPartnerId(partner.getFirst().getId());
-        chatDetailResponse.setPartnerNickname(partner.getFirst().getNickname());
-        chatDetailResponse.setPartnerProfileImageUrl(fileService.getPreSignedUrl(partner.getFirst().getProfileImageId().getS3Key()));
-
-        return chatDetailResponse;
+        String preSignedUrl = fileService.getPreSignedUrl(partner.getFirst().getProfileImageId().getS3Key());
+        return ChatDetailResponse.of(partner.getFirst(), preSignedUrl, messages);
     }
 
     public void findUserAndLeaveRoom(Long userId, Long chatRoomId) {
@@ -233,15 +243,25 @@ public class ChatMessagesService {
     public boolean checkPeerInRoom(Long roomId) {
         ChatRooms chatrooms = chatRoomsRepository.findById(roomId).orElseThrow();
         boolean isPeerInRoom = chatrooms.isActive();
-        if(!isPeerInRoom){
+        if (!isPeerInRoom) {
             chatrooms.changeIsActive(true);
-            ChatMessages chatMessage = chatMessagesRepository.findFirstByRoomIdAndTypeOrderBySentAtDesc(roomId, MessageType.LEAVE);
+            ChatMessages chatMessage = chatMessagesRepository.findFirstByRoomIdAndTypeOrderBySentAtDesc(roomId,
+                    MessageType.LEAVE);
             UserEntity peerUser = userRepository.getReferenceById(chatMessage.getSenderId());
-//            System.out.println(peerUser.getId()  +"  "  + chatMessage.getContent());
+            // System.out.println(peerUser.getId() +" " + chatMessage.getContent());
             ChatRoomUser chatRoomPeerUser = new ChatRoomUser(peerUser, chatrooms);
 
             chatRoomUserRepository.save(chatRoomPeerUser);
         }
         return isPeerInRoom;
+    }
+
+    // 상대방 유저 찾기 로직 분리
+    private List<UserEntity> findPartner(Long chatRoomId, Long userId) {
+        return chatRoomUserRepository.findByChatRoomId(chatRoomId).stream()
+                .map(ChatRoomUser::getUser)
+                .filter(user -> !user.getId().equals(userId))
+                .toList();
+        // .orElseThrow(() -> new UserNotFoundException(userId));
     }
 }
