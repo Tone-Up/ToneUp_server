@@ -174,11 +174,12 @@ public class ChatMessagesService {
 
     @Transactional
     public ChatDetailResponse getChatDetail(Long userId, Long chatRoomId, LocalDateTime lastSentAt) {
-        if (lastSentAt == null)
-            lastSentAt = LocalDateTime.parse("2010-01-11T00:00:00");
+        // if (lastSentAt == null)
+        // lastSentAt = LocalDateTime.parse("2010-01-11T00:00:00");
+        LocalDateTime searchTime = Optional.ofNullable(lastSentAt).orElse(LocalDateTime.MIN);
 
         List<ChatMessages> chatMessagesList = chatMessagesRepository.findByRoomIdAndSentAtGreaterThan(chatRoomId,
-                lastSentAt);
+                searchTime);
         chatMessagesList.removeFirst();
 
         // List<ChatRoomUser> chatRoomUserList =
