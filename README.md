@@ -3,7 +3,7 @@
 ### 아키텍처
 <img width="931" height="586" alt="Image" src="https://github.com/user-attachments/assets/f63197b1-159e-4d76-b48b-11cc1098b1df" />
 
-###ERD
+### ERD
 <img width="1914" height="889" alt="Image" src="https://github.com/user-attachments/assets/18072973-32d7-4385-bdf1-1c9d83461d6b" />
 
 ### tone-up
