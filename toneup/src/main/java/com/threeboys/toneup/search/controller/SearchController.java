@@ -3,6 +3,7 @@ package com.threeboys.toneup.search.controller;
 import com.redislabs.lettusearch.Suggestion;
 import com.threeboys.toneup.common.response.StandardResponse;
 import com.threeboys.toneup.personalColor.domain.PersonalColorType;
+import com.threeboys.toneup.product.domain.Product;
 import com.threeboys.toneup.recommand.dto.ProductPageItemResponse;
 import com.threeboys.toneup.search.dto.AutoCompleteResponse;
 import com.threeboys.toneup.search.service.SearchService;
@@ -36,6 +37,13 @@ public class SearchController {
         System.out.println("keyword; " + keyword);
         AutoCompleteResponse autoCompleteResponse = searchService.getAutoComplete(keyword);
         return ResponseEntity.ok(new StandardResponse<>(true, 0, "ok",autoCompleteResponse));
+    }
+
+    @GetMapping("/mysql")
+    public ResponseEntity<?> getSearchList(@RequestParam(required = false) String keyword){
+        System.out.println("keyword; " + keyword);
+        List<String> productList = searchService.getSearch(keyword);
+        return ResponseEntity.ok(new StandardResponse<>(true, 0, "ok",productList));
     }
 
 }

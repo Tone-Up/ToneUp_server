@@ -2,6 +2,7 @@ package com.threeboys.toneup.search.service;
 
 import com.redislabs.lettusearch.Suggestion;
 import com.threeboys.toneup.common.service.FileService;
+import com.threeboys.toneup.product.domain.Product;
 import com.threeboys.toneup.product.repository.ProductRepository;
 import com.threeboys.toneup.recommand.dto.ProductPageItemResponse;
 import com.threeboys.toneup.search.dto.AutoCompleteResponse;
@@ -33,5 +34,9 @@ public class SearchService {
     public AutoCompleteResponse getAutoComplete(String keyword) {
         List<Suggestion<String>> suggestionList =  redisSearchService.autoComplete(keyword);
         return  AutoCompleteResponse.toDto(suggestionList);
+    }
+
+    public List<String> getSearch(String keyword) {
+        return  productRepository.searchByKeyword(keyword);
     }
 }

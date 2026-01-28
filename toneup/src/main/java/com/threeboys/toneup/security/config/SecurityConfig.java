@@ -62,7 +62,10 @@ public class SecurityConfig {
         //경로별 인가 작업
         http
                 .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers("/","/api/app/authorization", "/api/auth/refresh").permitAll()
+                        .requestMatchers("/","/api/app/authorization", "/api/auth/refresh",
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html").permitAll()
 //                        .requestMatchers("/api/app/**").authenticated()
                         .anyRequest().authenticated());
 //                        .anyRequest().denyAll();
