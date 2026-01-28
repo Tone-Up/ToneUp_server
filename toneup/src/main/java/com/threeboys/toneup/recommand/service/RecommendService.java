@@ -73,7 +73,7 @@ public class RecommendService {
                 .collect(Collectors.toList());
         ProductPageItemResponse productPageItemResponse = productRepository.findProductWithImageAndIsLiked(userId,cursor, limit, productIdList, false, null);
         if(productPageItemResponse.getProducts()!=null){
-            productPageItemResponse.getProducts().stream().forEach(productPreviewResponse -> {
+            productPageItemResponse.getProducts().forEach(productPreviewResponse -> {
 
                 productPreviewResponse.setImageUrl(fileService.getPreSignedUrl(productPreviewResponse.getImageUrl()));
             });
