@@ -18,13 +18,28 @@ public class ChatMessage {
     private String content;
     private Long senderId;
     private MessageType type;
-//    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
-//    private LocalDateTime sentAt;
-    private ChatMessage(Long senderId, String content){
+
+    private int unreadCnt;
+
+    public void handleUnread(boolean isReceiverInRoom, int unreadCount) {
+        if (!isReceiverInRoom) {
+            updateUnreadCnt(unreadCount);
+        }
+    }
+
+    private void updateUnreadCnt(int unreadCount) {
+        this.unreadCnt = unreadCount;
+    }
+
+    // @JsonFormat(shape = JsonFormat.Shape.STRING, pattern =
+    // "yyyy-MM-dd'T'HH:mm:ss")
+    // private LocalDateTime sentAt;
+    private ChatMessage(Long senderId, String content) {
         this.senderId = senderId;
         this.content = content;
     }
-    public ChatMessages toEntity(ChatRooms chatRooms){
+
+    public ChatMessages toEntity(ChatRooms chatRooms) {
         return ChatMessages.builder()
                 .type(type)
                 .content(content)
@@ -33,6 +48,7 @@ public class ChatMessage {
                 .sentAt(LocalDateTime.now())
                 .build();
     }
+
     public static ChatMessage create(Long senderId, String content) {
         return new ChatMessage(senderId, content);
     }
