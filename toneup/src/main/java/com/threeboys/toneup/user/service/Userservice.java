@@ -30,33 +30,27 @@ public class Userservice {
     private final FeedRepository feedRepository;
     private final FileService fileService;
 
-    private static final String DEFAULT_PROFILE_IMAGE ="images/DEFAULT_PROFILE_IMAGE";
+    private static final String DEFAULT_PROFILE_IMAGE = "images/DEFAULT_PROFILE_IMAGE";
 
-    public UserEntity registerUser(String name, String nickname, String email, ProviderType providerType, String providerId){
-        return userRepository.findByProviderAndProviderId(providerType,providerId)
-//                .map(userEntity -> {
-                    // 정보 업데이트
-//                    userEntity.setName(name);
-//                    userEntity.setEmail(email);
-//                    return userRepository.save(userEntity);
-//                })
+    public UserEntity registerUser(String name, String nickname, String email, ProviderType providerType,
+            String providerId) {
+        return userRepository.findByProviderAndProviderId(providerType, providerId)
+                // .map(userEntity -> {
+                // 정보 업데이트
+                // userEntity.setName(name);
+                // userEntity.setEmail(email);
+                // return userRepository.save(userEntity);
+                // })
                 .orElseGet(() -> {
                     // 기본 프로필 이미지 추가(기본 프로필 이미지 id = 0)
                     // 이미지 없을때 예외 처리 해야하나
-                    Images profileImage = Images.builder()
-                        .url(DEFAULT_PROFILE_IMAGE)
-                        .type(ImageType.PROFILE)
-//                        .refId()
-                        .order(0)
-                        .s3Key(DEFAULT_PROFILE_IMAGE)
-                        .build();
+                    Images profileImage = Images.createDefaultProfile(DEFAULT_PROFILE_IMAGE);
 
                     // 회원가입
-                    UserEntity newUser = new UserEntity(name,nickname, providerType, providerId, email, profileImage);
+                    UserEntity newUser = new UserEntity(name, nickname, providerType, providerId, email, profileImage);
                     return userRepository.save(newUser);
                 });
     }
-
 
     public boolean isPersonal(UserEntity user) {
         return user.getPersonalColor() != null;
@@ -67,11 +61,12 @@ public class Userservice {
     }
 
     public ProfileResponse getProfile(Long userId, Long targetId) {
-        UserEntity targetEntity = userRepository.findById(targetId).orElseThrow(()->new UserNotFoundException(userId));
+        UserEntity targetEntity = userRepository.findById(targetId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
         Long followerCount = followRepository.countByFolloweeId(targetId);
         Long followingCount = followRepository.countByFollowerId(targetId);
         Long diaryCount = null;
-        if(userId.equals(targetId)){
+        if (userId.equals(targetId)) {
             diaryCount = diaryRepository.countByUserId(userId);
         }
         Long feedCount = feedRepository.countByUserId(userId);
@@ -80,46 +75,38 @@ public class Userservice {
         boolean isFollower = followRepository.existsByFollowerIdAndFolloweeId(targetId, userId);
 
         String profileUrl = fileService.getPreSignedUrl(targetEntity.getProfileImageId().getS3Key());
-        return ProfileResponse.from(targetEntity, profileUrl, followerCount, followingCount, isFollower,isFollowing, feedCount, diaryCount);
+        return ProfileResponse.from(targetEntity, profileUrl, followerCount, followingCount, isFollower, isFollowing,
+                feedCount, diaryCount);
     }
 
-    public void updateProfile(Long userId, UpdateProfileRequest updateProfileRequest) {
-        UserEntity userEntity = userRepository.findById(userId).orElseThrow(()->new UserNotFoundException(userId));
+    public void updateProfile(Long userId, UpdateProfileRequest request) {
+        UserEntity userEntity = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         User user = userEntity.toDomain();
-        System.out.println(userEntity.getProfileImageId());
+
+        // System.out.println(userEntity.getProfileImageId());
 
         Long profileId = userEntity.getProfileImageId().getId();
         String s3Key = userEntity.getProfileImageId().getS3Key();
-        //Mapper로 변경 고려 필요? or changeProfile 안에 넣기?
-        if(updateProfileRequest.getNickname()!=null&&!updateProfileRequest.getNickname().equals(user.getNickname())) {
+        // Mapper로 변경 고려 필요? or changeProfile 안에 넣기?
+        if (request.getNickname() != null && !request.getNickname().equals(user.getNickname())) {
             // 중복 닉네임 아닌 경우에 닉네임 검증(길이 및 특수문자) 후 변경
-            userRepository.findByNickname(updateProfileRequest.getNickname())
+            userRepository.findByNickname(request.getNickname())
                     .ifPresent(userEntity1 -> {
                         throw new DuplicateNicknameException();
                     });
-            user.changNickname(updateProfileRequest.getNickname());
+            user.changNickname(request.getNickname());
         }
-        if(updateProfileRequest.getBio()!=null) user.changeBio(updateProfileRequest.getBio());
-        if(updateProfileRequest.getProfileImageUrl()!=null) user.changeProfileImage(updateProfileRequest.getProfileImageUrl());
+        if (request.getBio() != null)
+            user.changeBio(request.getBio());
+        if (request.getProfileImageUrl() != null)
+            user.changeProfileImage(request.getProfileImageUrl());
 
-        //s3 기존 이미지 삭제 필요?(기본 이미지였던 경우에는 제외) fileService.changeProfileImage(?)
-        //기본 프로필 이미지가 아닌 경우 현재 이미지 엔티티 s3Key값만 수정
-        if(!userEntity.getProfileImageId().getS3Key().equals(DEFAULT_PROFILE_IMAGE)) fileService.deleteS3Object(s3Key);
+        // s3 기존 이미지 삭제 필요?(기본 이미지였던 경우에는 제외) fileService.changeProfileImage(?)
+        // 기본 프로필 이미지가 아닌 경우 현재 이미지 엔티티 s3Key값만 수정
+        if (!userEntity.getProfileImageId().getS3Key().equals(DEFAULT_PROFILE_IMAGE))
+            fileService.deleteS3Object(s3Key);
 
         userEntity.changeProfile(user);
-
-//        Images image = userEntity.getProfileImageId();
-//        image.changeProfileImageUrl(user.getProfileImageUrl());
-
-        //더티 체킹으로 이미지 url 변경
-//        Images image = Images.builder()
-//                .url(user.getProfileImageUrl())
-//                .type(ImageType.PROFILE)
-//                .refId(userId)
-//                .order(0)
-//                .s3Key(user.getProfileImageUrl())
-//                .build();
-
 
     }
 }
