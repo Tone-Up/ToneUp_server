@@ -4,6 +4,7 @@ import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIOServer;
 import com.threeboys.toneup.chat.domain.MessageType;
 import com.threeboys.toneup.chat.service.ChatMessagesService;
+import com.threeboys.toneup.common.config.ChatRedisPublisher;
 import com.threeboys.toneup.common.service.FileService;
 import com.threeboys.toneup.socketio.dto.ChatListEventResponse;
 import com.threeboys.toneup.socketio.annotation.SocketController;
@@ -14,6 +15,7 @@ import com.threeboys.toneup.socketio.dto.RoomRequest;
 import com.threeboys.toneup.socketio.service.FcmService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -29,7 +31,8 @@ public class RoomController {
     private final ChatMessagesService chatMessagesService;
     private final FcmService fcmService;
     private final FileService fileService;
-
+    private final ChatRedisPublisher chatRedisPublisher;
+    private final StringRedisTemplate redisTemplate;
 
 //    @SocketMapping(endpoint = "joinRoom", requestCls = RoomRequest.class)
 //    public void joinRoom(SocketIOClient client, RoomRequest request) {
@@ -65,10 +68,17 @@ public class RoomController {
         Collection<SocketIOClient> clients = client.getNamespace().getRoomOperations(roomId.toString()).getClients();
 
         // 현재 방에 연결된 유저들 ID 수집
-        Set<Long> connectedUserIds = clients.stream()
-                .filter(SocketIOClient::isChannelOpen)
-                .map(c -> Long.parseLong(c.get("userId")))
+//        Set<Long> connectedUserIds = clients.stream()
+//                .filter(SocketIOClient::isChannelOpen)
+//                .map(c -> Long.parseLong(c.get("userId")))
+//                .collect(Collectors.toSet());
+
+        Set<Long> connectedUserIds = redisTemplate.opsForSet()
+                .members("room:" + roomId + ":connectedUsers")
+                .stream()
+                .map(Long::parseLong)
                 .collect(Collectors.toSet());
+
 
         // 해당 채팅방의 모든 유저 ID (ex. DB에 저장되어 있는)
         Set<Long> roomUserIds = chatMessagesService.getUserIdsInRoom(roomId); // ex. [1, 2]
@@ -99,6 +109,8 @@ public class RoomController {
         log.info("unreadCount : {}", unreadCount);
 
         //(방에 있는 유저들에게) 소켓 통신 메시지 전송
+
+
         ChatMessageResponse chatMessageResponse;
         if(message.getType().equals(MessageType.IMAGE)) {
             List<String> list = Arrays.stream(message.getContent().split(","))
@@ -117,9 +129,11 @@ public class RoomController {
         }else{
             chatMessageResponse = new ChatMessageResponse(message, unreadCount);
         }
-        client.getNamespace().getRoomOperations(roomId.toString())
-                .sendEvent("chat", chatMessageResponse);
 
+        // 3. 메시지 발행 → Redis Pub/Sub(분산 서버 환경)
+        chatRedisPublisher.publish(chatMessageResponse);
+//        client.getNamespace().getRoomOperations(roomId.toString())
+//                .sendEvent("chat", chatMessageResponse);
 
         if(unreadCount ==0){
             //unread_count 증가 없이(unread_count default 0으로 설정) db 저장 후

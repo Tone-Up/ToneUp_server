@@ -132,9 +132,23 @@ public class RedisSearchConfig {
 //
 //        return new JedisPooled(sentinelPool);
 //    }
-
-
-
+/***
+//    @Bean(destroyMethod = "close")
+//    public JedisSentinelPool jedisSentinelPool() {
+//        Set<String> sentinels = new HashSet<>(redisSentinelProperties.getNodes()); // "host:port"
+//        return new JedisSentinelPool(redisSentinelProperties.getMaster(), sentinels, redisPassword);
+//    }
+//
+//    // RedisVectorStore용 Wrapper
+//    @Bean
+//    public JedisPooled jedisPooled(JedisSentinelPool pool) {
+//        // JedisSentinelPool에서 마스터 접속 정보를 가져와 JedisPooled로 감싸는 것이 아니라,
+//        // 매번 pool.getResource()를 통해 사용하도록 하는 것이 안전
+//        return new JedisPooled(pool.getCurrentHostMaster(), DefaultJedisClientConfig.builder()
+//                .password(redisPassword)
+//                .build());
+//    }
+***/
 
 
     @Bean

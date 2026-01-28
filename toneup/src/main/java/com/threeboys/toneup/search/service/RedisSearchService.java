@@ -27,13 +27,14 @@ public class RedisSearchService implements CommandLineRunner {
         RediSearchCommands<String, String> commands = searchConnection.sync();
         SuggetOptions options = SuggetOptions.builder().max(20L).withScores(true).build();
         return commands.sugget(autoCompleteKey, keyword, options);
-
     }
 
     @Override
     public void run(String... args) {
         try {
             RediSearchCommands<String, String> commands = searchConnection.sync();
+            log.info("[RedisSearch] 자동완성 초기화 시작");
+
             productRepository.findAll().forEach(product -> {
                 if(product.getBrand() != null){
                     commands.sugadd(autoCompleteKey,

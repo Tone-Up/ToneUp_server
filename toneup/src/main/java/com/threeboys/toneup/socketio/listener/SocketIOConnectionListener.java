@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RTopic;
 import org.redisson.api.RedissonClient;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -18,12 +19,15 @@ import java.util.*;
 public class SocketIOConnectionListener {
     private final SocketIOServer server;
     private final RedissonClient redissonClient;
+    private final StringRedisTemplate redisTemplate;
+
     /**
      * 소켓 이벤트 리스너 등록
      */
-    public SocketIOConnectionListener(SocketIOServer server, RedissonClient redissonClient) {
+    public SocketIOConnectionListener(SocketIOServer server, RedissonClient redissonClient, StringRedisTemplate redisTemplate) {
         this.server = server;
         this.redissonClient = redissonClient;
+        this.redisTemplate = redisTemplate;
 
         // 소켓 이벤트 리스너 등록
         server.addConnectListener(listenConnected());
@@ -61,10 +65,14 @@ public class SocketIOConnectionListener {
                 JoinRoomResponse joinRoomResponse = new JoinRoomResponse(userId,roomId);
                 client.getNamespace().getRoomOperations(roomId).sendEvent("joinRoom", joinRoomResponse);
 
-//                server.getNamespace("").getRoomOperations(roomId).sendEvent("joinRoom", "유저 : " + nickname + "이 입장했습니다.");
+                //다른 서버에 사용자 세션 저장을 굳이 중복으로 할 필요 없이 레디스로 세션 정보를 공유해서 그걸 이용해 unreadCount 계산 하기
 
-                RTopic topic = redissonClient.getTopic("room:" + roomId);
-                topic.publish(new JoinRoomResponse(userId, roomId));
+//                RTopic topic = redissonClient.getTopic("room:" + roomId);
+//                topic.publish(new JoinRoomResponse(userId, roomId));
+
+                // Redis에 접속 등록
+                redisTemplate.opsForSet().add("room:" + roomId + ":connectedUsers", userId);
+                redisTemplate.opsForHash().increment("room:" + roomId + ":userCount", userId, 1);
 
 
                 log.info("client{}가 방 : {} 에 입장했습니다.", client.getSessionId(), roomId);
@@ -88,6 +96,18 @@ public class SocketIOConnectionListener {
             Set<String> rooms =  client.getAllRooms();
             String roomId = String.valueOf(rooms.stream().findFirst());
             client.leaveRoom(roomId);
+
+
+            // 세션 카운트 감소
+            Long remaining = redisTemplate.opsForHash().increment("room:" + roomId + ":userCount", sessionId, -1);
+            redisTemplate.opsForSet().remove("room:" + roomId + ":connectedUsers", sessionId);
+
+            if (remaining <= 0) {
+                // 세션이 다 끊어지면 Set에서도 제거
+                redisTemplate.opsForHash().delete("room:" + roomId + ":userCount", sessionId);
+            }
+
+
 
 //            String nickname = client.getHandshakeData().getSingleUrlParam("nickname");
 //            client.getNamespace().getRoomOperations(roomId).sendEvent("leaveRoom", "유저 : " + nickname + "이 나갔습니다.");

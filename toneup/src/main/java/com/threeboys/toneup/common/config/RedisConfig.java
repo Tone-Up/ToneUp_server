@@ -8,6 +8,8 @@ import org.springframework.data.redis.connection.*;
 import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.listener.PatternTopic;
+import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
@@ -36,9 +38,12 @@ public class RedisConfig {
 
     private final RedisSentinelProperties redisSentinelProperties;
 
-    public RedisConfig(RedisSentinelProperties redisSentinelProperties) {
+    public RedisConfig(RedisSentinelProperties redisSentinelProperties, ChatRedisSubscriber chatRedisSubscriber) {
         this.redisSentinelProperties = redisSentinelProperties;
+        this.chatRedisSubscriber = chatRedisSubscriber;
     }
+
+    private final ChatRedisSubscriber chatRedisSubscriber;
 
 //    @Bean
 //    public RedisConnectionFactory redisConnectionFactory() {
@@ -76,6 +81,15 @@ public class RedisConfig {
             return new LettuceConnectionFactory(sentinelConfig, clientConfig);
         }
 
+    @Bean
+    public RedisMessageListenerContainer redisMessageListenerContainer(RedisConnectionFactory connectionFactory) {
+        RedisMessageListenerContainer container = new RedisMessageListenerContainer();
+        container.setConnectionFactory(connectionFactory);
+
+        // 채팅방 패턴 전체 구독
+        container.addMessageListener(chatRedisSubscriber, new PatternTopic("chat-room-*"));
+        return container;
+    }
 
 
     @Bean
