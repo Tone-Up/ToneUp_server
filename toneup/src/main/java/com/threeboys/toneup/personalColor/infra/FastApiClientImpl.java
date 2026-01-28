@@ -23,6 +23,7 @@ import reactor.core.publisher.Mono;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
@@ -214,9 +215,10 @@ public class FastApiClientImpl implements FastApiClient{
     @Override
     public PersonalColorAnalyzeResponse requestPersonalColorUpdateRestClientGpt(PersonalColorAnalyzeRequest input) {
         RSemaphore semaphore = redissonClient.getSemaphore(SEMAPHORE_KEY);
-        semaphore.trySetPermits(PERMIT_COUNT);
+        semaphore.trySetPermits(PERMIT_COUNT, Duration.ofSeconds(30));
         try {
-            semaphore.acquire(); // 요청 전 세마포어 획득
+            semaphore.tryAcquire(); // non blocking
+//            semaphore.acquire(); // blocking 요청 전 세마포어 획득
 
 
             MultipartFile imageFile = input.getImage();
@@ -249,11 +251,12 @@ public class FastApiClientImpl implements FastApiClient{
             log.info("FastAPI 호출 및 응답 소요 시간: {} ms", (endTime - startTime));
 
             return response;
-
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException("스레드 sleep 또는 세마포어 획득 중단", e);
-        } catch (IOException e) {
+        }
+//        catch (InterruptedException e) {
+//            Thread.currentThread().interrupt();
+//            throw new RuntimeException("스레드 sleep 또는 세마포어 획득 중단", e);
+//        }
+        catch (IOException e) {
             throw new RuntimeException(e);
         } finally {
             semaphore.release(); // 꼭 반환
