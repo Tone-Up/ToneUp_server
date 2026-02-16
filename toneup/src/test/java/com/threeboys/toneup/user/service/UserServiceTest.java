@@ -84,7 +84,7 @@ public class UserServiceTest {
 
         UserEntity userEntity = new UserEntity(
                 "김준영", "Jjun", ProviderType.GOOGLE, "test1234", "test1234@test.com", profileImage);
-
+        userEntity.setPersonalColor(new PersonalColor(PersonalColorType.SPRING));
         // spy를 사용하여 메서드 호출 검증을 위해 감쌈 (선택 사항: 호출 여부만 확인하고 싶다면 spy 사용, 상태 변경만 확인한다면 spy
         // 불필요)
         // 여기서는 기존 테스트가 verify를 사용하므로 spy를 사용하거나, 상태 기반 검증으로 변경하는 것이 좋음.
