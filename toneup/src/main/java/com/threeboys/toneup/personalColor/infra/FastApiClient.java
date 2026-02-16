@@ -18,7 +18,7 @@ public interface FastApiClient {
 
     PersonalColorAnalyzeResponse requestPersonalColorUpdateRestClient(PersonalColorAnalyzeRequest request);
     PersonalColorAnalyzeResponse requestPersonalColorUpdateRestClientGpt(PersonalColorAnalyzeRequest input);
-
+    PersonalColorAnalyzeResponse requestPersonalColorUpdateRestClientNotSema(PersonalColorAnalyzeRequest input);
     Mono<PersonalColorAnalyzeResponse> requestPersonalColorUpdateWebClientReactive(PersonalColorAnalyzeRequest request);
 
     Resource downloadEmbeddingFile(List<ProductEmbeddingRequest> request);

@@ -3,7 +3,6 @@ package com.threeboys.toneup.personalColor.config;
 import com.threeboys.toneup.personalColor.infra.FastApiClient;
 import com.threeboys.toneup.personalColor.infra.FastApiClientImpl;
 
-//import org.apache.hc.client5.http.classic.HttpClient;
 
 import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
@@ -14,6 +13,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestTemplate;
@@ -31,7 +31,7 @@ public class FastApiConfig {
     @Bean
     public RestTemplate restTemplate() {
         PoolingHttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager();
-        connManager.setMaxTotal(12); // 최대 커넥션 수
+//        connManager.setMaxTotal(12); // 최대 커넥션 수
 //        connManager.setDefaultMaxPerRoute(20); // 라우트당 최대 커넥션 수
 
         HttpClient httpClient = HttpClients.custom()
@@ -39,9 +39,9 @@ public class FastApiConfig {
 //                .evictIdleConnections(30, TimeUnit.SECONDS) // idle 커넥션 정리
                 .build();
 
-        HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
-        factory.setConnectTimeout(30000);
-        factory.setReadTimeout(30000);
+        JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory();
+//        factory.setConnectTimeout(30000);
+//        factory.setReadTimeout(30000);
 
         return new RestTemplate(factory);
 //        return new RestTemplate();
@@ -62,6 +62,6 @@ public class FastApiConfig {
     }
     @Bean
     public FastApiClient fastApiClient(RestTemplate restTemplate, FastApiProperties props, WebClient webClient, RestClient restClient, RedissonClient redissonClient) {
-        return new FastApiClientImpl(restTemplate, props.getUrl(),redissonClient, webClient, restClient );
+        return new FastApiClientImpl(restTemplate, props.getUrl(),redissonClient, restClient,webClient );
     }
 }

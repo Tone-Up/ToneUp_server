@@ -37,7 +37,7 @@ public class RestClientConfig {
 //        return builder.build();
 //    }
     @Bean
-    public RestClient restClient(HttpClient httpClient) {
+    public RestClient restClient() {
         return RestClient.builder()
                 .requestFactory(new HttpComponentsClientHttpRequestFactory())
                 .requestInterceptor((request, body, execution) -> {
@@ -46,14 +46,14 @@ public class RestClientConfig {
                 })
                 .build();
     }
-    @Bean
-    public HttpClient httpClient() {
-        return HttpClient.newBuilder()
-//                .executor(Executors.newVirtualThreadPerTaskExecutor()) // Thread pinning 발생
-                .connectTimeout(Duration.ofSeconds(15))
-//                .version(HttpClient.Version.HTTP_2)
-                .build();
-    }
+//    @Bean
+//    public HttpClient httpClient() {
+//        return HttpClient.newBuilder()
+////                .executor(Executors.newVirtualThreadPerTaskExecutor()) // Thread pinning 발생
+//                .connectTimeout(Duration.ofSeconds(15))
+////                .version(HttpClient.Version.HTTP_2)
+//                .build();
+//    }
     // Thread pinning 발생
 //    @Bean
 //    public RestClient restClient() {

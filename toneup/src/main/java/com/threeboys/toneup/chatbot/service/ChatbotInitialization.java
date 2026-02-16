@@ -165,53 +165,53 @@ public class ChatbotInitialization implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         // QnA 문서 로드
-        List<Document> documents = loadDocumentsFromFile();
-        vectorStore.add(documents);
+//        List<Document> documents = loadDocumentsFromFile();
+//        vectorStore.add(documents);
 
         // 상품 임베딩 로드 (없으면 FastAPI에서 받아오기)
-        loadEmbeddingFromFile();
-
-        //redis pipeline으로 임베딩 데이터 백터 스토어에 저장
-
-        if (!Files.exists(PRODUCT_EMBEDDING_PATH)) {
-            throw new RuntimeException("product 임베딩 파일이 존재하지 않습니다: " + PRODUCT_EMBEDDING_PATH.toAbsolutePath());
-        }
-
-//        String json = Files.readString(PRODUCT_EMBEDDING_PATH);
-//        List<ProductEmbedding> products =  objectMapper.readValue(
-//                json,
-//                new TypeReference<List<ProductEmbedding>>() {}
-//        );
-//        saveProductEmbeddingsWithPipeline(products);
-
-        ObjectMapper mapper = new ObjectMapper();
-        List<ProductEmbedding> products = new ArrayList<>();
-        int count = 0;
-
-        try (InputStream is = Files.newInputStream(PRODUCT_EMBEDDING_PATH)) {
-            JsonParser parser = mapper.getFactory().createParser(is);
-
-            if (parser.nextToken() != JsonToken.START_ARRAY) {
-                throw new IllegalStateException("Expected an array");
-            }
-
-            while (parser.nextToken() != JsonToken.END_ARRAY) {
-                ProductEmbedding product = mapper.readValue(parser, ProductEmbedding.class);
-                products.add(product);
-                count++;
-
-                if (count >= 500) {
-                    saveProductEmbeddingsWithPipeline(products);
-                    products.clear();
-                    count = 0;
-                }
-            }
-
-            // 남은 제품 처리
-            if (!products.isEmpty()) {
-                saveProductEmbeddingsWithPipeline(products);
-            }
-        }
+//        loadEmbeddingFromFile();
+//
+//        //redis pipeline으로 임베딩 데이터 백터 스토어에 저장
+//
+//        if (!Files.exists(PRODUCT_EMBEDDING_PATH)) {
+//            throw new RuntimeException("product 임베딩 파일이 존재하지 않습니다: " + PRODUCT_EMBEDDING_PATH.toAbsolutePath());
+//        }
+//
+////        String json = Files.readString(PRODUCT_EMBEDDING_PATH);
+////        List<ProductEmbedding> products =  objectMapper.readValue(
+////                json,
+////                new TypeReference<List<ProductEmbedding>>() {}
+////        );
+////        saveProductEmbeddingsWithPipeline(products);
+//
+//        ObjectMapper mapper = new ObjectMapper();
+//        List<ProductEmbedding> products = new ArrayList<>();
+//        int count = 0;
+//
+//        try (InputStream is = Files.newInputStream(PRODUCT_EMBEDDING_PATH)) {
+//            JsonParser parser = mapper.getFactory().createParser(is);
+//
+//            if (parser.nextToken() != JsonToken.START_ARRAY) {
+//                throw new IllegalStateException("Expected an array");
+//            }
+//
+//            while (parser.nextToken() != JsonToken.END_ARRAY) {
+//                ProductEmbedding product = mapper.readValue(parser, ProductEmbedding.class);
+//                products.add(product);
+//                count++;
+//
+//                if (count >= 500) {
+//                    saveProductEmbeddingsWithPipeline(products);
+//                    products.clear();
+//                    count = 0;
+//                }
+//            }
+//
+//            // 남은 제품 처리
+//            if (!products.isEmpty()) {
+//                saveProductEmbeddingsWithPipeline(products);
+//            }
+//        }
     }
 
 //    private void saveProductEmbeddingsWithPipeline(List<ProductEmbedding> products) {

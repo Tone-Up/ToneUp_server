@@ -33,6 +33,7 @@ public class FastApiClientImpl implements FastApiClient{
     private final RestTemplate restTemplate;
     private final String fastApiUrl;
     private final RedissonClient redissonClient;
+    private final RestClient restClient;
 
 
     private static final String SEMAPHORE_KEY = "personalColor:semaphore";
@@ -119,7 +120,6 @@ public class FastApiClientImpl implements FastApiClient{
 
 
     }
-    private final RestClient restClient;
 
     private static final Semaphore SEMAPHORE = new Semaphore(12); // 동시에 최대 5개 요청만 허용
 //    @Override
@@ -224,7 +224,6 @@ public class FastApiClientImpl implements FastApiClient{
             MultipartFile imageFile = input.getImage();
             MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
 //            MultipartBodyBuilder builder = new MultipartBodyBuilder();
-
 //            builder.part("user_id", String.valueOf(input.getUserId()));
 //            builder.part("file", imageFile.getResource());
             body.add("user_id", String.valueOf(input.getUserId()));
@@ -263,6 +262,55 @@ public class FastApiClientImpl implements FastApiClient{
         }
     }
 
+    @Override
+    public PersonalColorAnalyzeResponse requestPersonalColorUpdateRestClientNotSema(PersonalColorAnalyzeRequest input) {
+        try {
+//            semaphore.acquire(); // blocking 요청 전 세마포어 획득
+
+
+            MultipartFile imageFile = input.getImage();
+            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+//            MultipartBodyBuilder builder = new MultipartBodyBuilder();
+//            builder.part("user_id", String.valueOf(input.getUserId()));
+//            builder.part("file", imageFile.getResource());
+
+
+
+            body.add("user_id", String.valueOf(input.getUserId()));
+            body.add("file", new FileSystemResource(convert(imageFile))); // 파일처럼 인식시키기
+
+
+
+//            MultiValueMap<String, HttpEntity<?>> body = builder.build();
+
+            System.out.println("id : " + input.getUserId());
+//            System.out.println(body.getFirst("file").getBody() + " : " + body.getFirst("file").getHeaders());
+            long startTime = System.currentTimeMillis();
+//
+//            body.add("user_id", String.valueOf(input.getUserId()));
+//            body.add("file", imageFile.getResource());
+            PersonalColorAnalyzeResponse response = restClient.post()
+                    .uri(fastApiUrl + "/analyze-color")
+//                    .contentType(MediaType.MULTIPART_FORM_DATA)
+                    .body(body)  // MultiValueMap + HttpEntity 그대로 넣기
+                    .retrieve()
+                    .body(PersonalColorAnalyzeResponse.class);
+
+            long endTime = System.currentTimeMillis();
+            log.info("FastAPI 호출 및 응답 소요 시간: {} ms", (endTime - startTime));
+
+            return response;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+//        catch (InterruptedException e) {
+//            Thread.currentThread().interrupt();
+//            throw new RuntimeException("스레드 sleep 또는 세마포어 획득 중단", e);
+//        }
+//        catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
+    }
 
 
 //    @Override
