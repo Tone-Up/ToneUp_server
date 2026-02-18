@@ -86,7 +86,6 @@ public class RedisSearchConfig {
     public JedisPooled jedisPooled() {
         Set<String> sentinels = new HashSet<>(redisSentinelProperties.getNodes()); // "host:port" 형태
         String masterName = redisSentinelProperties.getMaster();
-
         // JedisSentinelPool용 클라이언트 설정
 //        DefaultJedisClientConfig clientConfig = DefaultJedisClientConfig.builder()
 //                .password(redisPassword)   // Redis 비밀번호
@@ -104,13 +103,27 @@ public class RedisSearchConfig {
 
     @Bean
     public RediSearchClient rediSearchClient() {
+        List<String> nodes = redisSentinelProperties.getNodes();
+        if (nodes.isEmpty()) {
+            throw new IllegalArgumentException("Sentinel nodes : empty!!!");
+        }
+
         // Sentinel 연결: 첫 번째 노드 기준, 마스터 이름 지정
-        String[] firstNode = redisSentinelProperties.getNodes().getFirst().split(":");
-        RedisURI redisUri = RedisURI.Builder
-                .sentinel(firstNode[0], Integer.parseInt(firstNode[1]), masterName)
+        String[] firstNode = nodes.get(0).split(":");
+        RedisURI.Builder builder = RedisURI.Builder.sentinel(
+                firstNode[0],
+                Integer.parseInt(firstNode[1]),
+                masterName
+        );
+        // 모든 센티널 노드(EC2, 집1, 집2)를 추가
+        for (int i =1; i < redisSentinelProperties.getNodes().size();i++) {
+            String[] hostPort = nodes.get(i).split(":");
+            builder.withSentinel(hostPort[0], Integer.parseInt(hostPort[1]));
+        }
+
+        RedisURI redisUri = builder
                 .withPassword(redisPassword.toCharArray())
                 .build();
-
         return RediSearchClient.create(redisUri);
     }
 
@@ -167,13 +180,5 @@ public class RedisSearchConfig {
                 .initializeSchema(true) // ← 여기 꼭 true
                 .build();
     }
-
-
-//    @Bean
-//    public EmbeddingModel embeddingModel() {
-//
-//        return new OpenAiEmbeddingModel(new OpenAiApi(openApiKey));
-//    }
-
 
 }
