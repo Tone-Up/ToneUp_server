@@ -80,6 +80,7 @@ dependencies {
 	implementation("com.redislabs:spring-redisearch:3.0.1")
 	//최신 버전인데  자료 적어서 위에꺼 사용
 //	implementation 'com.redis:lettucemod:4.4.0'
+	implementation 'redis.clients:jedis:5.1.0' // 스카우터 2.21이 지원하는 안정 버전
 
 
 	// QueryDsl
