@@ -130,8 +130,8 @@ public class PersonalColorService {
 
 
 //부하테스트 피닝 발견위해
-                PersonalColorAnalyzeResponse response = fastApiClient.requestPersonalColorUpdate(request);
-//        PersonalColorAnalyzeResponse response = fastApiClient.requestPersonalColorUpdateRestClientGpt(request);
+//                PersonalColorAnalyzeResponse response = fastApiClient.requestPersonalColorUpdate(request);
+        PersonalColorAnalyzeResponse response = fastApiClient.requestPersonalColorUpdateRestClientGpt(request);
 
 
         // 3. WebClient를 통한 FastAPI 호출 (.block() 사용)

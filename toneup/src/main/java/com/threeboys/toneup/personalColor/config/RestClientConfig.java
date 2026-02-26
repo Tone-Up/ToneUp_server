@@ -46,6 +46,27 @@ public class RestClientConfig {
                 })
                 .build();
     }
+
+//    @Bean
+//    public RestClient restClient() {
+//        PoolingHttpClientConnectionManager connManager = PoolingHttpClientConnectionManagerBuilder.create()
+//                .setMaxConnTotal(1000)      // 전체 커넥션 확 늘림
+//                .setMaxConnPerRoute(500)    // FastAPI 서버당 할당량도 확 늘림
+//                .build();
+//
+//        CloseableHttpClient httpClient = HttpClients.custom()
+//                .setConnectionManager(connManager)
+//                .build();
+//
+//        return RestClient.builder()
+//                .requestFactory(new HttpComponentsClientHttpRequestFactory(httpClient))
+//                .build();
+//    }
+
+
+
+
+
 //    @Bean
 //    public HttpClient httpClient() {
 //        return HttpClient.newBuilder()
