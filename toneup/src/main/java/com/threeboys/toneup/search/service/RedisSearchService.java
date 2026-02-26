@@ -32,19 +32,19 @@ public class RedisSearchService implements CommandLineRunner {
     @Override
     public void run(String... args) {
         try {
-//            RediSearchCommands<String, String> commands = searchConnection.sync();
-//            log.info("[RedisSearch] 자동완성 초기화 시작");
-//
-//            productRepository.findAll().forEach(product -> {
-//                if(product.getBrand() != null){
-//                    commands.sugadd(autoCompleteKey,
-//                            Suggestion.builder(product.getBrand()).score(5.0).build(), true);
-//                }
-//                if(product.getProductName() != null){
-//                    commands.sugadd(autoCompleteKey,
-//                            Suggestion.builder(product.getProductName()).score(1.0).build(), true);
-//                }
-//            });
+            RediSearchCommands<String, String> commands = searchConnection.sync();
+            log.info("[RedisSearch] 자동완성 초기화 시작");
+
+            productRepository.findAll().forEach(product -> {
+                if(product.getBrand() != null){
+                    commands.sugadd(autoCompleteKey,
+                            Suggestion.builder(product.getBrand()).score(5.0).build(), true);
+                }
+                if(product.getProductName() != null){
+                    commands.sugadd(autoCompleteKey,
+                            Suggestion.builder(product.getProductName()).score(1.0).build(), true);
+                }
+            });
             log.info("[RedisSearch] 자동완성 초기화 완료");
         } catch (Exception e) {
             log.error("[RedisSearch] 자동완성 초기화 실패", e);

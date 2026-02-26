@@ -12,13 +12,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.JedisPooled;
 import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.json.Path2;
+import redis.clients.jedis.params.ScanParams;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,110 +38,11 @@ import java.util.Optional;
 import java.util.function.Predicate;
 
 import static org.springframework.ai.vectorstore.redis.RedisVectorStore.DEFAULT_EMBEDDING_FIELD_NAME;
-//@Component
-//@RequiredArgsConstructor
-//public class ChatbotInitialization implements CommandLineRunner {
-//    private final ProductRepository productRepository;
-//    private final FastApiClient fastApiClient;
-//
-//    private final VectorStore vectorStore;
-//
-//    private static final String EMBEDDING_FILE = "qna_embeddings.json";
-//    private static final String PRODUCT_EMBEDDING_FILE = "product_embeddings.json";
-//
-//    private final ObjectMapper objectMapper = new ObjectMapper();
-//
-//    public List<Document> loadDocumentsFromFile() {
-//        try {
-//            ClassPathResource resource = new ClassPathResource(EMBEDDING_FILE);
-//            File file = resource.getFile();
-//
-//            if (!file.exists()) {
-//                System.out.println(file.toPath() + ":  file PAth");
-//                throw new RuntimeException("임베딩 파일이 존재하지 않습니다: " + EMBEDDING_FILE);
-//            }
-//
-//            // 파일 읽기
-//            String json = Files.readString(file.toPath());
-//
-//            // JSON -> List<Document>
-//            return objectMapper.readValue(
-//                    json, new TypeReference<List<Document>>() {}
-//            );
-//
-//        } catch (Exception e) {
-//            throw new RuntimeException("Document 파일 로드 실패", e);
-//        }
-//    }
-//
-//    //chatbot QnA 관련 문서 임베딩 후 벡터 스토어 저장 과정
-//    @Override
-//    public void run(String... args) throws Exception {
-//        List<Document> documents = loadDocumentsFromFile();
-//        loadEmbeddingFromFile();
-//        vectorStore.add(documents);
-//        //pipline 으로 배치 삽입 진행하여 레디스에 저장
-//
-//    }
-//
-//    private void loadEmbeddingFromFile() throws IOException {
-//        //파일이 존재 하면 가져와서
-//
-//        //파일이 존재 하지 않으면
-//        //fastapi 서버에 상품 데이터 전송해 임베딩 파일 받기
-//
-//        ClassPathResource resource = new ClassPathResource(PRODUCT_EMBEDDING_FILE);
-//        try {
-//
-////            if (!resource.getFile().exists()) {
-////
-////            }
-//
-//            File file = resource.getFile();
-//            System.out.println(file.toPath() + ":  file PAth");
-//            // 파일 읽기
-////            String json = Files.readString(file.toPath());
-//
-//            // JSON -> List<Document>
-////            List<Document> documents = objectMapper.readValue(
-////                    json, new TypeReference<List<Document>>() {}
-////            );
-//
-//
-//        } catch (Exception e) {
-//            List<ProductEmbeddingRequest> products = productRepository.findAllEmbeddingData();
-//            Resource embeddingResource = fastApiClient.downloadEmbeddingFile(products);
-//
-//            createEmbeddingFile(embeddingResource);
-//            File file = resource.getFile();
-//            System.out.println(file.toPath() + ":  file PAth , 파일 생성 완료");
-////            throw new RuntimeException("Document 파일 로드 실패", e);
-//        }
-//    }
-//
-//    private void createEmbeddingFile(Resource resource) {
-//
-//        if (resource == null) {
-//            throw new RuntimeException("파일 다운로드 실패");
-//        }
-//
-//        // 파일명 설정 (FastAPI에서 Content-Disposition 헤더 자동 전달)
-//        File targetFile = new File(PRODUCT_EMBEDDING_FILE);
-//
-//
-//        try (InputStream inputStream = resource.getInputStream();
-//             FileOutputStream outputStream = new FileOutputStream(targetFile)) {
-//            inputStream.transferTo(outputStream);
-//        }catch (IOException e){
-//            System.out.println("파일 생성 실패 : "+ e.getMessage());
-//        }
-//
-//        System.out.println("파일 저장 완료: " + targetFile.getAbsolutePath());
-//    }
-//}
+
 @Component
 @Slf4j
-public class ChatbotInitialization implements CommandLineRunner {
+@ConditionalOnProperty(name = "app.vector.init-enabled", havingValue = "true")
+public class ChatbotInitialization implements ApplicationRunner {
 
     private final ProductRepository productRepository;
     private final FastApiClient fastApiClient;
@@ -147,71 +53,98 @@ public class ChatbotInitialization implements CommandLineRunner {
 
     private static final String QNA_EMBEDDING_FILE = "qna_embeddings.json";
     private static final String PRODUCT_EMBEDDING_FILE = "product_embeddings.json";
-    private static final Path PRODUCT_EMBEDDING_PATH = Paths.get(System.getProperty("user.home"), "opt", "toneup", PRODUCT_EMBEDDING_FILE);
+//    private static final Path PRODUCT_EMBEDDING_PATH = Paths.get(System.getProperty("user.home"), "opt", "toneup", PRODUCT_EMBEDDING_FILE);
 
     private static final Predicate<Object> RESPONSE_OK = Predicate.isEqual("OK");
     private static final Path2 JSON_SET_PATH = Path2.of("$");
     public static final String PRODUCT_PREFIX = "productEmbedding";
 
     private static final int BATCH_SIZE = 500; // 한 번에 처리할 embedding 개수
+    @Value("${app.vector.embedding-file-path:}")
+    private String embeddingFilePath;
 
-    public ChatbotInitialization(ProductRepository productRepository, FastApiClient fastApiClient, @Qualifier("openAiVectorStore") VectorStore vectorStore, JedisPooled jedis) {
+    public ChatbotInitialization(ProductRepository productRepository,
+                                 FastApiClient fastApiClient,
+                                 @Qualifier("openAiVectorStore") VectorStore vectorStore,
+                                 JedisPooled jedis) {
         this.productRepository = productRepository;
         this.fastApiClient = fastApiClient;
         this.vectorStore = vectorStore;
         this.jedis = jedis;
     }
-
+    private Path getEmbeddingPath() {
+        if (embeddingFilePath == null || embeddingFilePath.isBlank()) {
+            return Paths.get(System.getProperty("user.home"), "opt", "toneup", PRODUCT_EMBEDDING_FILE);
+        }
+        return Paths.get(embeddingFilePath, PRODUCT_EMBEDDING_FILE);
+    }
     @Override
-    public void run(String... args) throws Exception {
-        // QnA 문서 로드
-//        List<Document> documents = loadDocumentsFromFile();
-//        vectorStore.add(documents);
+    public void run(ApplicationArguments args) throws Exception {
+        log.info("[Vector Initializer] 초기화 검사 시작...");
+
+        // 1. 레디스에 데이터가 존재하는가?
+        ScanParams scanParams = new ScanParams().match(PRODUCT_PREFIX + ":*").count(1);
+        if (!jedis.scan("0", scanParams).getResult().isEmpty()) {
+            log.info("1단계 통과: 레디스에 이미 임베딩 데이터가 존재합니다. (초기화 종료)");
+            return;
+        }
+        log.info("레디스에 임베딩 데이터가 없습니다. 복구 로직을 시작합니다.");
+
+
+
+        //QnA 문서 로드
+        try {
+            List<Document> documents = loadDocumentsFromFile();
+            vectorStore.add(documents);
+            log.info(" QnA 임베딩 데이터 적재 완료.");
+        } catch (Exception e) {
+            log.error(" QnA 문서 로드 중 에러 발생: {}", e.getMessage());
+        }
 
         // 상품 임베딩 로드 (없으면 FastAPI에서 받아오기)
-//        loadEmbeddingFromFile();
-//
-//        //redis pipeline으로 임베딩 데이터 백터 스토어에 저장
-//
-//        if (!Files.exists(PRODUCT_EMBEDDING_PATH)) {
-//            throw new RuntimeException("product 임베딩 파일이 존재하지 않습니다: " + PRODUCT_EMBEDDING_PATH.toAbsolutePath());
-//        }
-//
-////        String json = Files.readString(PRODUCT_EMBEDDING_PATH);
-////        List<ProductEmbedding> products =  objectMapper.readValue(
-////                json,
-////                new TypeReference<List<ProductEmbedding>>() {}
-////        );
-////        saveProductEmbeddingsWithPipeline(products);
-//
-//        ObjectMapper mapper = new ObjectMapper();
-//        List<ProductEmbedding> products = new ArrayList<>();
-//        int count = 0;
-//
-//        try (InputStream is = Files.newInputStream(PRODUCT_EMBEDDING_PATH)) {
-//            JsonParser parser = mapper.getFactory().createParser(is);
-//
-//            if (parser.nextToken() != JsonToken.START_ARRAY) {
-//                throw new IllegalStateException("Expected an array");
-//            }
-//
-//            while (parser.nextToken() != JsonToken.END_ARRAY) {
-//                ProductEmbedding product = mapper.readValue(parser, ProductEmbedding.class);
-//                products.add(product);
-//                count++;
-//
-//                if (count >= 500) {
-//                    saveProductEmbeddingsWithPipeline(products);
-//                    products.clear();
-//                    count = 0;
-//                }
-//            }
-//
-//            // 남은 제품 처리
-//            if (!products.isEmpty()) {
-//                saveProductEmbeddingsWithPipeline(products);
-//            }
-//        }
+        Path embeddingPath = getEmbeddingPath();
+        loadEmbeddingFromFile(embeddingPath);
+
+        //redis pipeline으로 임베딩 데이터 백터 스토어에 저장
+        if (!Files.exists(embeddingPath)) {
+            throw new RuntimeException("product 임베딩 파일이 존재하지 않습니다: " + embeddingPath.toAbsolutePath());
+        }
+
+//        String json = Files.readString(PRODUCT_EMBEDDING_PATH);
+//        List<ProductEmbedding> products =  objectMapper.readValue(
+//                json,
+//                new TypeReference<List<ProductEmbedding>>() {}
+//        );
+//        saveProductEmbeddingsWithPipeline(products);
+
+        ObjectMapper mapper = new ObjectMapper();
+        List<ProductEmbedding> products = new ArrayList<>();
+        int count = 0;
+
+        try (InputStream is = Files.newInputStream(embeddingPath)) {
+            JsonParser parser = mapper.getFactory().createParser(is);
+
+            if (parser.nextToken() != JsonToken.START_ARRAY) {
+                throw new IllegalStateException("Expected an array");
+            }
+
+            while (parser.nextToken() != JsonToken.END_ARRAY) {
+                ProductEmbedding product = mapper.readValue(parser, ProductEmbedding.class);
+                products.add(product);
+                count++;
+
+                if (count >= BATCH_SIZE) {
+                    saveProductEmbeddingsWithPipeline(products);
+                    products.clear();
+                    count = 0;
+                }
+            }
+
+            // 남은 제품 처리
+            if (!products.isEmpty()) {
+                saveProductEmbeddingsWithPipeline(products);
+            }
+        }
     }
 
 //    private void saveProductEmbeddingsWithPipeline(List<ProductEmbedding> products) {
@@ -299,16 +232,18 @@ public class ChatbotInitialization implements CommandLineRunner {
         }
     }
 
-    private void loadEmbeddingFromFile() throws IOException {
-        System.out.println("PRODUCT_EMBEDDING_PATH = " + PRODUCT_EMBEDDING_PATH.toAbsolutePath());
-        System.out.println("USER_HOME = " + System.getProperty("user.home"));
-        System.out.println("EXISTS = " + Files.exists(PRODUCT_EMBEDDING_PATH));
+    private void loadEmbeddingFromFile(Path embeddingPath) throws IOException {
+        log.info("PRODUCT_EMBEDDING_PATH = " + embeddingPath.toAbsolutePath());
+        log.info("USER_HOME = " + System.getProperty("user.home"));
+        log.info("EXISTS = " + Files.exists(embeddingPath));
         // 파일이 없으면 FastAPI 호출해서 생성
-        if (!Files.exists(PRODUCT_EMBEDDING_PATH)) {
-            System.out.println("상품 임베딩 파일 없음 → FastAPI에서 다운로드 중...");
+        if (!Files.exists(embeddingPath)) {
+            log.info("상품 임베딩 파일 없음 → FastAPI에서 다운로드 중...");
             List<ProductEmbeddingRequest> products = productRepository.findAllEmbeddingData();
             Resource embeddingResource = fastApiClient.downloadEmbeddingFile(products);
-            createEmbeddingFile(embeddingResource);
+            createEmbeddingFile(embeddingResource, embeddingPath);
+        }else{
+            log.info("로컬에 임베딩 파일이 존재(FastAPI 다운로드 스킵)");
         }
 
         // JSON 파일 파싱
@@ -317,19 +252,21 @@ public class ChatbotInitialization implements CommandLineRunner {
 //        System.out.println("상품 임베딩 로딩 완료: " + documents.size() + "개");
     }
 
-    private void createEmbeddingFile(Resource resource) {
+    private void createEmbeddingFile(Resource resource, Path embeddingPath) {
         if (resource == null) {
             throw new RuntimeException("파일 다운로드 실패");
         }
 
         try {
-            Files.createDirectories(ChatbotInitialization.PRODUCT_EMBEDDING_PATH.getParent());
+            Files.createDirectories(embeddingPath.getParent());
             try (InputStream inputStream = resource.getInputStream()) {
-                Files.copy(inputStream, ChatbotInitialization.PRODUCT_EMBEDDING_PATH);
+                Files.copy(inputStream, embeddingPath);
             }
-            System.out.println("상품 임베딩 파일 저장 완료: " + ChatbotInitialization.PRODUCT_EMBEDDING_PATH.toAbsolutePath());
+            System.out.println("상품 임베딩 파일 저장 완료: " + embeddingPath.toAbsolutePath());
         } catch (IOException e) {
             throw new RuntimeException("파일 생성 실패: " + e.getMessage(), e);
         }
     }
+
+
 }
