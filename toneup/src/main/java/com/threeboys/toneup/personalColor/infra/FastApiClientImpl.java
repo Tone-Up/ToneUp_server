@@ -3,6 +3,7 @@ package com.threeboys.toneup.personalColor.infra;
 import com.threeboys.toneup.personalColor.dto.PersonalColorAnalyzeRequest;
 import com.threeboys.toneup.personalColor.dto.PersonalColorAnalyzeResponse;
 import com.threeboys.toneup.product.dto.ProductEmbeddingRequest;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RSemaphore;
@@ -26,6 +27,7 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -34,10 +36,16 @@ public class FastApiClientImpl implements FastApiClient{
     private final String fastApiUrl;
     private final RedissonClient redissonClient;
     private final RestClient restClient;
-
+    private RSemaphore semaphore;
 
     private static final String SEMAPHORE_KEY = "personalColor:semaphore";
     private static final int PERMIT_COUNT = 12;
+
+    @PostConstruct
+    public void init() {
+        this.semaphore = redissonClient.getSemaphore(SEMAPHORE_KEY);
+        boolean isSet = semaphore.trySetPermits(PERMIT_COUNT);
+    }
 
     @Override
     public PersonalColorAnalyzeResponse requestPersonalColorUpdate(PersonalColorAnalyzeRequest input) {
@@ -212,15 +220,26 @@ public class FastApiClientImpl implements FastApiClient{
         }
     }
 
+
+
     @Override
     public PersonalColorAnalyzeResponse requestPersonalColorUpdateRestClientGpt(PersonalColorAnalyzeRequest input) {
-        RSemaphore semaphore = redissonClient.getSemaphore(SEMAPHORE_KEY);
-        semaphore.trySetPermits(PERMIT_COUNT, Duration.ofSeconds(30));
+        // 1. 상태 변수를 선언 (초기값 false)
+        boolean acquired = false;
+
         try {
-            semaphore.tryAcquire(); // non blocking
-//            semaphore.acquire(); // blocking 요청 전 세마포어 획득
+            // 2. 획득 시도 자체를 try 문 안에서 수행
+            // 만약 여기서 InterruptedException이 발생해도 finally가 잡아줍니다.
+            acquired = semaphore.tryAcquire(Duration.ofSeconds(30));
 
+            // 3. 획득 실패 시 예외 발생 -> 이때 finally로 가지만 acquired가 false라 release 안 함!
+            if (!acquired) {
+                log.warn("대기 시간 초과 (User: {})", input.getUserId());
+                throw new RuntimeException("대기 시간이 초과되었습니다.");
+            }
 
+            // 4. 실제 비즈니스 로직 실행
+            log.info("진입 성공 (User: {})", input.getUserId());
             MultipartFile imageFile = input.getImage();
             MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
 //            MultipartBodyBuilder builder = new MultipartBodyBuilder();
@@ -228,9 +247,6 @@ public class FastApiClientImpl implements FastApiClient{
 //            builder.part("file", imageFile.getResource());
             body.add("user_id", String.valueOf(input.getUserId()));
             body.add("file", new FileSystemResource(convert(imageFile))); // 파일처럼 인식시키기
-
-
-
 //            MultiValueMap<String, HttpEntity<?>> body = builder.build();
 
             System.out.println("id : " + input.getUserId());
@@ -250,17 +266,73 @@ public class FastApiClientImpl implements FastApiClient{
             log.info("FastAPI 호출 및 응답 소요 시간: {} ms", (endTime - startTime));
 
             return response;
-        }
-//        catch (InterruptedException e) {
-//            Thread.currentThread().interrupt();
-//            throw new RuntimeException("스레드 sleep 또는 세마포어 획득 중단", e);
-//        }
-        catch (IOException e) {
-            throw new RuntimeException(e);
+
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("세마포어 대기 중 흐름이 끊겼습니다.", e);
+        } catch (IOException e) {
+            throw new RuntimeException("convert 오류 발생",e);
         } finally {
-            semaphore.release(); // 꼭 반환
+            // 5. 정석: 획득에 성공했을 때만 반납!
+            // 이제 인텔리제이도 "acquired가 false일 수도 있네"라고 인지해서 경고를 끕니다.
+            if (acquired) {
+                semaphore.release();
+                log.info("세마포어 반납 완료 (User: {})", input.getUserId());
+            }
         }
     }
+
+
+
+//    @Override
+//    public PersonalColorAnalyzeResponse requestPersonalColorUpdateRestClientGpt(PersonalColorAnalyzeRequest input) {
+////        RSemaphore semaphore = redissonClient.getSemaphore(SEMAPHORE_KEY);
+////        semaphore.trySetPermits(PERMIT_COUNT, Duration.ofSeconds(30));
+//        try {
+//            semaphore.tryAcquire(); // non blocking
+////            semaphore.acquire(); // blocking 요청 전 세마포어 획득
+//
+//
+//            MultipartFile imageFile = input.getImage();
+//            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+////            MultipartBodyBuilder builder = new MultipartBodyBuilder();
+////            builder.part("user_id", String.valueOf(input.getUserId()));
+////            builder.part("file", imageFile.getResource());
+//            body.add("user_id", String.valueOf(input.getUserId()));
+//            body.add("file", new FileSystemResource(convert(imageFile))); // 파일처럼 인식시키기
+//
+//
+//
+////            MultiValueMap<String, HttpEntity<?>> body = builder.build();
+//
+//            System.out.println("id : " + input.getUserId());
+////            System.out.println(body.getFirst("file").getBody() + " : " + body.getFirst("file").getHeaders());
+//            long startTime = System.currentTimeMillis();
+////
+////            body.add("user_id", String.valueOf(input.getUserId()));
+////            body.add("file", imageFile.getResource());
+//            PersonalColorAnalyzeResponse response = restClient.post()
+//                    .uri(fastApiUrl + "/analyze-color")
+////                    .contentType(MediaType.MULTIPART_FORM_DATA)
+//                    .body(body)  // MultiValueMap + HttpEntity 그대로 넣기
+//                    .retrieve()
+//                    .body(PersonalColorAnalyzeResponse.class);
+//
+//            long endTime = System.currentTimeMillis();
+//            log.info("FastAPI 호출 및 응답 소요 시간: {} ms", (endTime - startTime));
+//
+//            return response;
+//        }
+////        catch (InterruptedException e) {
+////            Thread.currentThread().interrupt();
+////            throw new RuntimeException("스레드 sleep 또는 세마포어 획득 중단", e);
+////        }
+//        catch (IOException e) {
+//            throw new RuntimeException(e);
+//        } finally {
+//            semaphore.release(); // 꼭 반환
+//        }
+//    }
 
     @Override
     public PersonalColorAnalyzeResponse requestPersonalColorUpdateRestClientNotSema(PersonalColorAnalyzeRequest input) {
