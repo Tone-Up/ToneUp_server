@@ -50,6 +50,7 @@ public class Diary {
 
     public void attachImages(List<String> imageUrls){
         validateImageCount(imageUrls);
+        imageUrlList.clear(); // 기존 이미지를 비우고 새로 추가
         for(int i =0; i< imageUrls.size(); i++){
             Images images = Images.builder()
                     .type(ImageType.DIARY)

@@ -229,7 +229,6 @@ public class FastApiClientImpl implements FastApiClient{
 
         try {
             // 2. 획득 시도 자체를 try 문 안에서 수행
-            // 만약 여기서 InterruptedException이 발생해도 finally가 잡아줍니다.
             acquired = semaphore.tryAcquire(Duration.ofSeconds(30));
 
             // 3. 획득 실패 시 예외 발생 -> 이때 finally로 가지만 acquired가 false라 release 안 함!
