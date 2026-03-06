@@ -4,7 +4,6 @@ import com.threeboys.toneup.personalColor.infra.FastApiClient;
 import com.threeboys.toneup.personalColor.infra.FastApiClientImpl;
 
 
-import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
@@ -23,7 +22,9 @@ import org.springframework.web.reactive.function.client.WebClient;
 //import reactor.netty.http.client.HttpClient;
 import reactor.netty.resources.ConnectionProvider;
 
+import java.net.http.HttpClient;
 import java.time.Duration;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 
@@ -67,6 +68,11 @@ public class FastApiConfig {
         // 3. RequestFactory 설정
         HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
 
+//        HttpClient nativeHttpClient = HttpClient.newBuilder()
+//                // 핵심: 비동기 I/O 처리를 담당하는 "다른 스레드"도 가상 스레드로 만들어줌!
+//                .executor(Executors.newVirtualThreadPerTaskExecutor())
+//                .build();
+//        JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory(nativeHttpClient);
 
         return new RestTemplate(factory);
     }

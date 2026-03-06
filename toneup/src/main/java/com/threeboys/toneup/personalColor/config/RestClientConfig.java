@@ -1,5 +1,9 @@
 package com.threeboys.toneup.personalColor.config;
 
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,31 +25,32 @@ public class RestClientConfig {
     @Value("${spring.threads.virtual.enabled}")
     private boolean isVirtualThreadEnabled;
 
-//    @Bean
-//    public RestClient restClient() {
-//        var builder = RestClient.builder()
-//                .baseUrl(baseUrl);
-//
-//        if (isVirtualThreadEnabled) {
-//            builder = builder.requestFactory(new JdkClientHttpRequestFactory(
-//                    HttpClient.newBuilder()
-//                            .executor(Executors.newVirtualThreadPerTaskExecutor())
-//                            .build()
-//            ));
-//        }
-//
-//        return builder.build();
-//    }
     @Bean
     public RestClient restClient() {
-        return RestClient.builder()
-                .requestFactory(new HttpComponentsClientHttpRequestFactory())
-                .requestInterceptor((request, body, execution) -> {
-                    System.out.println("Headers: " + request.getHeaders());
-                    return execution.execute(request, body);
-                })
-                .build();
+        var builder = RestClient.builder()
+                .baseUrl(baseUrl);
+
+        if (isVirtualThreadEnabled) {
+            builder = builder.requestFactory(new JdkClientHttpRequestFactory(
+                    HttpClient.newBuilder()
+                            .executor(Executors.newVirtualThreadPerTaskExecutor())
+                            .build()
+            ));
+        }
+
+        return builder.build();
     }
+
+//    @Bean
+//    public RestClient restClient() {
+//        return RestClient.builder()
+//                .requestFactory(new HttpComponentsClientHttpRequestFactory())
+//                .requestInterceptor((request, body, execution) -> {
+//                    System.out.println("Headers: " + request.getHeaders());
+//                    return execution.execute(request, body);
+//                })
+//                .build();
+//    }
 
 //    @Bean
 //    public RestClient restClient() {

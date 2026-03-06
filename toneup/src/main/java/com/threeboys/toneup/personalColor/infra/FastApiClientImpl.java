@@ -6,10 +6,12 @@ import com.threeboys.toneup.product.dto.ProductEmbeddingRequest;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RPermitExpirableSemaphore;
 import org.redisson.api.RSemaphore;
 import org.redisson.api.RedissonClient;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.*;
 import org.springframework.http.client.MultipartBodyBuilder;
@@ -36,39 +38,57 @@ public class FastApiClientImpl implements FastApiClient{
     private final String fastApiUrl;
     private final RedissonClient redissonClient;
     private final RestClient restClient;
-    private RSemaphore semaphore;
+    private RPermitExpirableSemaphore semaphore;
 
     private static final String SEMAPHORE_KEY = "personalColor:semaphore";
     private static final int PERMIT_COUNT = 12;
 
     @PostConstruct
     public void init() {
-        this.semaphore = redissonClient.getSemaphore(SEMAPHORE_KEY);
+        this.semaphore = redissonClient.getPermitExpirableSemaphore(SEMAPHORE_KEY);
         boolean isSet = semaphore.trySetPermits(PERMIT_COUNT);
+        log.info("Rsemaphore setting 완료");
     }
 
     @Override
     public PersonalColorAnalyzeResponse requestPersonalColorUpdate(PersonalColorAnalyzeRequest input) {
         try {
+//
+//            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+//
+//            MultipartFile imageFile = input.getImage();
+//            ByteArrayResource resource = new ByteArrayResource(imageFile.getBytes()) {
+//                @Override
+//                public String getFilename() {
+//                    return imageFile.getOriginalFilename();
+//                }
+//            };
 
-            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-
-            MultipartFile imageFile = input.getImage();
-            ByteArrayResource resource = new ByteArrayResource(imageFile.getBytes()) {
-                @Override
-                public String getFilename() {
-                    return imageFile.getOriginalFilename();
-                }
-            };
-
-            body.add("file", resource);
-            body.add("user_id", input.getUserId());
-
+//            body.add("file", resource);
+//            body.add("user_id", input.getUserId());
+//
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-
+            log.info("진입 성공 (User: {})", input.getUserId());
+            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+            MultipartFile imageFile = input.getImage();
+//            MultipartBodyBuilder builder = new MultipartBodyBuilder();
+//            builder.part("user_id", String.valueOf(input.getUserId()));
+//            builder.part("file", imageFile.getResource());
+            body.add("user_id", String.valueOf(input.getUserId()));
+            body.add("file", new InputStreamResource(imageFile.getInputStream()) {
+                @Override
+                public String getFilename() {
+                    return imageFile.getOriginalFilename(); // FastAPI가 파일로 인식하도록 이름 지정
+                }
+                @Override
+                public long contentLength() throws IOException {
+                    return imageFile.getSize(); // 스트리밍을 위해 크기 지정
+                }
+            });
             HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
             long startTime = System.currentTimeMillis();
+            // 4. 실제 비즈니스 로직 실행
 
             ResponseEntity<PersonalColorAnalyzeResponse> response = restTemplate.postForEntity(
                     fastApiUrl + "/analyze-color",
@@ -225,14 +245,14 @@ public class FastApiClientImpl implements FastApiClient{
     @Override
     public PersonalColorAnalyzeResponse requestPersonalColorUpdateRestClientGpt(PersonalColorAnalyzeRequest input) {
         // 1. 상태 변수를 선언 (초기값 false)
-        boolean acquired = false;
+        String permitId = null;
 
         try {
-            // 2. 획득 시도 자체를 try 문 안에서 수행
-            acquired = semaphore.tryAcquire(Duration.ofSeconds(30));
+            // 2. 획득 시도 자체를 try 문 안에서 수행 ttl 45 초로 문제 발생시 자동으로 반납
+            permitId = semaphore.tryAcquire(30, 45, TimeUnit.SECONDS);
 
             // 3. 획득 실패 시 예외 발생 -> 이때 finally로 가지만 acquired가 false라 release 안 함!
-            if (!acquired) {
+            if (permitId==null) {
                 log.warn("대기 시간 초과 (User: {})", input.getUserId());
                 throw new RuntimeException("대기 시간이 초과되었습니다.");
             }
@@ -241,19 +261,19 @@ public class FastApiClientImpl implements FastApiClient{
             log.info("진입 성공 (User: {})", input.getUserId());
             MultipartFile imageFile = input.getImage();
             MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-//            MultipartBodyBuilder builder = new MultipartBodyBuilder();
-//            builder.part("user_id", String.valueOf(input.getUserId()));
-//            builder.part("file", imageFile.getResource());
             body.add("user_id", String.valueOf(input.getUserId()));
-            body.add("file", new FileSystemResource(convert(imageFile))); // 파일처럼 인식시키기
-//            MultiValueMap<String, HttpEntity<?>> body = builder.build();
-
-            System.out.println("id : " + input.getUserId());
-//            System.out.println(body.getFirst("file").getBody() + " : " + body.getFirst("file").getHeaders());
+            body.add("file", new InputStreamResource(imageFile.getInputStream()) {
+                @Override
+                public String getFilename() {
+                    return imageFile.getOriginalFilename(); // FastAPI가 파일로 인식하도록 이름 지정
+                }
+                @Override
+                public long contentLength() throws IOException {
+                    return imageFile.getSize(); // 스트리밍을 위해 크기 지정
+                }
+            });
             long startTime = System.currentTimeMillis();
-//
-//            body.add("user_id", String.valueOf(input.getUserId()));
-//            body.add("file", imageFile.getResource());
+
             PersonalColorAnalyzeResponse response = restClient.post()
                     .uri(fastApiUrl + "/analyze-color")
 //                    .contentType(MediaType.MULTIPART_FORM_DATA)
@@ -273,9 +293,8 @@ public class FastApiClientImpl implements FastApiClient{
             throw new RuntimeException("convert 오류 발생",e);
         } finally {
             // 5. 정석: 획득에 성공했을 때만 반납!
-            // 이제 인텔리제이도 "acquired가 false일 수도 있네"라고 인지해서 경고를 끕니다.
-            if (acquired) {
-                semaphore.release();
+            if (permitId!=null) {
+                semaphore.release(permitId);
                 log.info("세마포어 반납 완료 (User: {})", input.getUserId());
             }
         }
