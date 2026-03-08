@@ -65,7 +65,7 @@ public class SecurityConfig {
                         .requestMatchers("/","/api/app/authorization", "/api/auth/refresh",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
-                                "/swagger-ui.html").permitAll()
+                                "/swagger-ui.html", "/actuator/health").permitAll()
 //                        .requestMatchers("/api/app/**").authenticated()
                         .anyRequest().authenticated());
 //                        .anyRequest().denyAll();

@@ -97,7 +97,8 @@ dependencies {
 	//swagger
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.3'
 
-//	implementation 'com.spring.ai:spring-ai-client:1.0.1' // Spring AI SDK
+	//actuator
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
 
 }
