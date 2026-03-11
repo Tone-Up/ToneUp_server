@@ -32,7 +32,6 @@ public class AuthController {
     private final UserRepository userRepository;
     private final JWTUtil jwtProvider;
 
-
     @PostMapping("/app/authorization")
     public ResponseEntity<?> loginWithGoogle(@RequestBody OAuth2LoginRequest request) {
         ProviderType type = ProviderType.valueOf(request.getProvider().toUpperCase()); // 딱 여기까지만 책임
@@ -42,19 +41,18 @@ public class AuthController {
 
     }
 
-    @PostMapping("/app/dev/auth-token")
-    public String getTestToken() {
-        UserEntity testUser = userRepository.findByEmail("kimsy980311@gmail.com")
-                .orElseThrow();
-        return jwtProvider.createJwt(testUser.getId(),testUser.getNickname(),"null",testUser.getRole(), 60*60*24*14L);
-    }
-
+    // @PostMapping("/app/dev/auth-token")
+    // public String getTestToken() {
+    // UserEntity testUser = userRepository.findByEmail("kimsy980311@gmail.com")
+    // .orElseThrow();
+    // return
+    // jwtProvider.createJwt(testUser.getId(),testUser.getNickname(),"null",testUser.getRole(),
+    // 60*60*24*14L);
+    // }
 
     @PostMapping("/auth/refresh")
     public ResponseEntity<?> getRefresh(@RequestBody RefreshRequest request) {
-        String requestRefreshToken  = request.getRefreshToken();
-
-
+        String requestRefreshToken = request.getRefreshToken();
 
         jwtProvider.validateToken(requestRefreshToken);
         Long userId = jwtProvider.getRefreshUserId(requestRefreshToken);
@@ -62,18 +60,19 @@ public class AuthController {
         String nickname = user.getNickname();
         String personalColor = user.getPersonalColor().toString();
         String role = user.getRole();
-        //EXPIRED_REFRESH_TOKEN 로 예외 처리 변경 필요
-        RefreshToken redisRefreshToken = tokenRepository.findById(userId).orElseThrow(()-> new UserNotFoundException(userId));
+        // EXPIRED_REFRESH_TOKEN 로 예외 처리 변경 필요
+        RefreshToken redisRefreshToken = tokenRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
 
         if (!request.getRefreshToken().equals(redisRefreshToken.getRefreshToken())) {
             throw new InvalidRefreshTokenException(); // 예외 던짐
         }
-        String accessToken = jwtProvider.createJwt(userId, nickname, personalColor, role, JwtConstants.ACCESS_TOKEN_EXPIRATION);
+        String accessToken = jwtProvider.createJwt(userId, nickname, personalColor, role,
+                JwtConstants.ACCESS_TOKEN_EXPIRATION);
         String refreshToken = jwtProvider.createRefreshJwt(userId, JwtConstants.REFRESH_TOKEN_EXPIRATION);
         RefreshTokenResponse refreshTokenResponse = new RefreshTokenResponse(accessToken, refreshToken);
 
-        return ResponseEntity.ok(new StandardResponse<>(true, 0, "Ok",refreshTokenResponse));
+        return ResponseEntity.ok(new StandardResponse<>(true, 0, "Ok", refreshTokenResponse));
     }
-
 
 }
